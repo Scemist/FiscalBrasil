@@ -1,0 +1,17 @@
+{
+    "name": "scemist/imposto",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Imposto\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Lucas Scemist",
+            "email": "scemist.lucas@gmail.com"
+        }
+    ],
+    "require": {}
+}
