@@ -2,6 +2,7 @@
 
 namespace Imposto\Domain\Pedido;
 
+use Imposto\Catalogo\TipoPessoa\TipoPessoa;
 use Imposto\Catalogo\UFs\UF;
 use Imposto\Domain\Pedido\ItemPedido;
 use Imposto\Domain\NotaFiscal\NotaFiscalInterface;
@@ -16,6 +17,7 @@ class Pedido
 		private RegimeTributarioInterface $regimeTributario,
 		private UF $origem,
 		private UF $destino,
+		private TipoPessoa $tipoPessoa,
 	) {}
 
 	public function addItem(ItemPedido $item): void

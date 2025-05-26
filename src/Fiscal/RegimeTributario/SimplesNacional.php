@@ -6,6 +6,7 @@ use Imposto\Catalogo\UFs\UF;
 use Imposto\Domain\NotaFiscal\NotaFiscalDeProduto;
 use Imposto\Domain\ProdutoFiscal\NCM;
 use Imposto\Fiscal\CST\CST;
+use Imposto\Fiscal\GNRE\GNRE;
 
 class SimplesNacional implements RegimeTributarioInterface
 {
@@ -63,6 +64,24 @@ class SimplesNacional implements RegimeTributarioInterface
 	public function getCstIndicaIsencaoDeICMS(CST $cst): bool
 	{
 		return in_array($cst->getCodigo(), ['040', '041', '060']);
+	}
+
+	public function getDeveGerarGNRE(NotaFiscalInterface $notaFiscal): bool
+	{
+		# GNRE é geralmente para tributos estaduais, como ICMS
+		# No Simples Nacional, tributos são unificados, então não gera GNRE
+		return false;
+	}
+
+	public function getGNRE(NotaFiscalInterface $notaFiscal): GNRE
+	{
+		throw new \Exception("GNRE não é aplicável para Simples Nacional");
+	}
+
+	public function getDIFAL(ItemPedido $item, UF $ufOrigem, UF $ufDestino): float
+	{
+		# Simples Nacional normalmente não recolhe DIFAL, então retorna 0
+		return 0.0;
 	}
 
 	public function getXml(NotaFiscalDeProduto $notaFiscal): string

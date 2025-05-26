@@ -2,6 +2,7 @@
 
 require_once 'vendor/autoload.php';
 
+use Imposto\Catalogo\TipoPessoa\TipoPessoa;
 use Imposto\Domain\Pedido\Pedido;
 use Imposto\Domain\Pedido\ItemPedido;
 use Imposto\Domain\ProdutoFiscal\NCM;
@@ -15,6 +16,7 @@ $pedido = new Pedido(
 	regimeTributario: new SimplesNacional(),
 	origem: UF::SP,
 	destino: UF::MG,
+	tipoPessoa: TipoPessoa::PF,
 );
 
 $pedido->addItem(new ItemPedido(
