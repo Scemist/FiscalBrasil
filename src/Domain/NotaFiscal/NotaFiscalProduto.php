@@ -2,25 +2,24 @@
 
 namespace Imposto\Domain\NotaFiscal;
 
+use Imposto\Catalogo\UFs\UF;
 use Imposto\Domain\NotaFiscal\NotaFiscalInterface;
 use Imposto\Fiscal\RegimeTributario\RegimeTributarioInterface;
 use Imposto\Domain\Pedido\ItemPedido;
+use Imposto\Domain\Pedido\Pedido;
 
-// Nota Fiscal do tipo Produto
+# Nota Fiscal do tipo Produto
 class NotaFiscalProduto implements NotaFiscalInterface
 {
-	private array $itens; # ItemPedido
-	private RegimeTributarioInterface $regimeTributario;
-
-	public function __construct(array $itens, RegimeTributarioInterface $regimeTributario)
-	{
-		$this->itens = $itens;
-		$this->regimeTributario = $regimeTributario;
-	}
-
-	public function getItens(): array
-	{
-		return $this->itens;
+	public function __construct(
+		private array $itens, # ItemPedido
+		private RegimeTributarioInterface $regimeTributario,
+		private UF $origem,
+		private UF $destino,
+		// private Pedido $pedido,
+	) {
+		foreach ($this->itens as $item)
+			$item->getItem()->setNotaFiscal($this);
 	}
 
 	public function getRegimeTributario(): RegimeTributarioInterface
@@ -53,7 +52,7 @@ class NotaFiscalProduto implements NotaFiscalInterface
 
 	public function getICMS(): float
 	{
-		return $this->regimeTributario->calcularICMS($this->itens);
+		return $this->regimeTributario->calcularICMS($this->itens, $this->origem, $this->destino);
 	}
 
 	public function getIPI(): float
@@ -63,7 +62,7 @@ class NotaFiscalProduto implements NotaFiscalInterface
 
 	public function getISS(): float
 	{
-		// Nota fiscal de produto não tem ISS
+		# Nota fiscal de produto não tem ISS
 		return 0.0;
 	}
 

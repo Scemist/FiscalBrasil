@@ -2,9 +2,11 @@
 
 namespace Imposto\Fiscal\RegimeTributario;
 
+use Imposto\Catalogo\UFs\UF;
+
 class SimplesNacional implements RegimeTributarioInterface
 {
-	public function calcularICMS(array $itens): float
+	public function calcularICMS(array $itens, UF $origem, UF $destino): float
 	{
 		$total = 0.0;
 
@@ -12,13 +14,16 @@ class SimplesNacional implements RegimeTributarioInterface
 			$produto = $item->getItem();
 			$cst = $produto->getCST()->getCodigo();
 
-			// CSTs que indicam isenção ou substituição tributária
-			if (in_array($cst, ['040', '041', '060'])) {
-				continue; // Isento ou ST
-			}
+			if ($this->getCstIndicaIsencaoDeICMS($cst))
+				continue;
 
-			// Exemplo: aplica ICMS de 12%
-			$aliquota = 0.12;
+			$aliquota = $this->getAliquotaICMS(
+				$produto->getNCM()->getCodigo(),
+				$origem,
+				$destino,
+				$cst
+			);
+
 			$total += $item->getSubtotal() * $aliquota;
 		}
 
@@ -33,13 +38,14 @@ class SimplesNacional implements RegimeTributarioInterface
 			$produto = $item->getItem();
 			$cst = $produto->getCST()->getCodigo();
 
-			// IPI geralmente não incide em itens isentos ou com CST especial
-			if (in_array($cst, ['040', '041', '050'])) {
+			if ($this->getCstIndicaIsencaoDeIPI($cst))
 				continue;
-			}
 
-			// Exemplo: aplica IPI de 5%
-			$aliquota = 0.05;
+			$aliquota = $this->getAliquotaIPI(
+				$produto->getNCM()->getCodigo(),
+				$cst
+			);
+
 			$total += $item->getSubtotal() * $aliquota;
 		}
 
@@ -48,7 +54,38 @@ class SimplesNacional implements RegimeTributarioInterface
 
 	public function calcularISS(array $itens): float
 	{
-		// No Simples Nacional, nota fiscal de produto não tem ISS
 		return 0.0;
+	}
+
+	public function getAliquotaICMS(string $ncm, UF $ufOrigem, UF $ufDestino, string $cst): float
+	{
+		// Exemplo de regra: interestadual com CST 000 -> 12%
+		if ($cst === '000' && $ufOrigem !== $ufDestino)
+			return 0.12;
+
+		if ($cst === '000')
+			return 0.18;
+
+		// Outras regras...
+		return 0.0;
+	}
+
+	public function getAliquotaIPI(string $ncm, string $cst): float
+	{
+		// Exemplo de alíquota genérica
+		if (in_array($cst, ['050', '099']))
+			return 0.10;
+
+		return 0.05;
+	}
+
+	public function getCstIndicaIsencaoDeIPI(string $cst): bool
+	{
+		return in_array($cst, ['040', '041', '050']);
+	}
+
+	public function getCstIndicaIsencaoDeICMS(string $cst): bool
+	{
+		return in_array($cst, ['040', '041', '060']);
 	}
 }
