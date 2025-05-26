@@ -6,29 +6,10 @@ use Imposto\Domain\Pedido\Pedido;
 use Imposto\Domain\Pedido\ItemPedido;
 use Imposto\Domain\ProdutoFiscal\NCM;
 use Imposto\Fiscal\CST\CST;
-use Imposto\Fiscal\CFOP\CFOP5102;
+use Imposto\Fiscal\CFOP\CFOP;
 use Imposto\Fiscal\RegimeTributario\SimplesNacional;
 use Imposto\Catalogo\UFs\UF;
-
-$guitarra = new ItemPedido(
-	nome: 'Guitarra Stratocaster',
-	preco: 1099.0,
-	quantidade: 1,
-	unidade: 'un',
-	ncm: new NCM('9207.90.10'),
-	cst: new CST('000'),
-	cfop: new CFOP5102(),
-);
-
-$pedal = new ItemPedido(
-	nome: 'Pedal de Efeito',
-	preco: 399.0,
-	quantidade: 2,
-	unidade: 'un',
-	ncm: new NCM('9207.90.90'),
-	cst: new CST('000'),
-	cfop: new CFOP5102()
-);
+use Imposto\Catalogo\Unidade\Unidade;
 
 $pedido = new Pedido(
 	regimeTributario: new SimplesNacional(),
@@ -36,8 +17,25 @@ $pedido = new Pedido(
 	destino: UF::MG,
 );
 
-$pedido->addItem($pedal);
-$pedido->addItem($guitarra);
+$pedido->addItem(new ItemPedido(
+	nome: 'Guitarra Stratocaster',
+	preco: 1099.0,
+	quantidade: 1,
+	unidade: Unidade::UNIDADE,
+	ncm: new NCM('9207.90.10'),
+	cst: new CST('000'),
+	cfop: new CFOP('5102'),
+));
+
+$pedido->addItem(new ItemPedido(
+	nome: 'Pedal de Efeito',
+	preco: 399.0,
+	quantidade: 2,
+	unidade: Unidade::UNIDADE,
+	ncm: new NCM('9207.90.90'),
+	cst: new CST('000'),
+	cfop: new CFOP('5102')
+));
 
 $notaFiscal = $pedido->getNotaFiscal();
 

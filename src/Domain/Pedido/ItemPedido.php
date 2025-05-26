@@ -2,9 +2,10 @@
 
 namespace Imposto\Domain\Pedido;
 
+use Imposto\Catalogo\Unidade\Unidade;
 use Imposto\Domain\NotaFiscal\NotaFiscalInterface;
 use Imposto\Domain\ProdutoFiscal\NCM;
-use Imposto\Fiscal\CFOP\CFOPAbstract;
+use Imposto\Fiscal\CFOP\CFOP;
 use Imposto\Fiscal\CST\CST;
 
 class ItemPedido
@@ -15,10 +16,10 @@ class ItemPedido
 		private string $nome,
 		private float $preco,
 		private float $quantidade,
-		private string $unidade,
+		private Unidade $unidade,
 		private NCM $ncm,
 		private CST $cst,
-		private CFOPAbstract $cfop,
+		private CFOP $cfop,
 	) {}
 
 	public function getQuantidade(): int
@@ -46,7 +47,7 @@ class ItemPedido
 		return $this->cst;
 	}
 
-	public function getCFOP(): CFOPAbstract
+	public function getCFOP(): CFOP
 	{
 		return $this->cfop;
 	}
