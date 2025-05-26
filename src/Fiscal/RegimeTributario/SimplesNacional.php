@@ -8,30 +8,6 @@ use Imposto\Fiscal\CST\CST;
 
 class SimplesNacional implements RegimeTributarioInterface
 {
-	// public function calcularICMS(array $itens, UF $origem, UF $destino): float
-	// {
-	// 	$total = 0.0;
-
-	// 	foreach ($itens as $item) {
-	// 		$produto = $item->getItem();
-	// 		$cst = $produto->getCST()->getCodigo();
-
-	// 		if ($this->getCstIndicaIsencaoDeICMS($cst))
-	// 			continue;
-
-	// 		$aliquota = $this->getAliquotaICMS(
-	// 			$produto->getNCM()->getCodigo(),
-	// 			$origem,
-	// 			$destino,
-	// 			$cst
-	// 		);
-
-	// 		$total += $item->getSubtotal() * $aliquota;
-	// 	}
-
-	// 	return $total;
-	// }
-
 	public function calcularIPI(array $itens): float
 	{
 		$total = 0.0;
@@ -61,7 +37,7 @@ class SimplesNacional implements RegimeTributarioInterface
 	public function getAliquotaICMS(NCM $ncm, UF $ufOrigem, UF $ufDestino, CST $cst): float
 	{
 		// Exemplo de regra: interestadual com CST 000 -> 12%
-		if ($cst === '000' && $ufOrigem !== $ufDestino)
+		if ($cst->getCodigo() === '000' && $ufOrigem !== $ufDestino)
 			return 0.12;
 
 		if ($cst === '000')
@@ -69,6 +45,23 @@ class SimplesNacional implements RegimeTributarioInterface
 
 		// Outras regras...
 		return 0.0;
+	}
+
+	public function getXml(array $itens): string
+	{
+		$xml = "<notaFiscal>\n";
+
+		foreach ($itens as $item) {
+			$xml .= "  <item>\n";
+			$xml .= "    <descricao>" . htmlspecialchars($item->getNome(), ENT_XML1, 'UTF-8') . "</descricao>\n";
+			$xml .= "    <quantidade>" . (int)$item->getQuantidade() . "</quantidade>\n";
+			$xml .= "    <preco>" . (float)$item->getPreco() . "</preco>\n";
+			$xml .= "    <icms>" . (float)$item->getICMS() . "</icms>\n";
+			$xml .= "  </item>\n";
+		}
+
+		$xml .= "</notaFiscal>";
+		return $xml;
 	}
 
 	public function getAliquotaIPI(string $ncm, string $cst): float

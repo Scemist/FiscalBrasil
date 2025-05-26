@@ -26,21 +26,9 @@ class NotaFiscalDeProduto implements NotaFiscalInterface
 		return $this->regimeTributario;
 	}
 
-	public function toXml(): string
+	public function getXml(): string
 	{
-		$xml = "<notaFiscal>\n";
-
-		foreach ($this->itens as $item) {
-			$xml .= "  <item>\n";
-			$xml .= "    <descricao>" . htmlspecialchars($item->getNome(), ENT_XML1, 'UTF-8') . "</descricao>\n";
-			$xml .= "    <quantidade>" . (int)$item->getQuantidade() . "</quantidade>\n";
-			$xml .= "    <preco>" . (float)$item->getPreco() . "</preco>\n";
-			$xml .= "    <icms>" . (float)$item->getICMS() . "</icms>\n";
-			$xml .= "  </item>\n";
-		}
-
-		$xml .= "</notaFiscal>";
-		return $xml;
+		return $this->regimeTributario->getXml($this->itens);
 	}
 
 	public function getSubtotal(): float

@@ -96,6 +96,6 @@ class ItemPedido
 	private function ensureNotaFiscal(): void
 	{
 		if ($this->notaFiscal === null)
-			throw new \Exception("Nota fiscal não definida.");
+			throw new \Exception('A Nota Fiscal precisa ser definida para ter esta informação.');
 	}
 }

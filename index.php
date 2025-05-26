@@ -53,4 +53,4 @@ echo 'IPI: ', asReal($notaFiscal->getIPI()), PHP_EOL;
 echo 'Total com Impostos: ', asReal($notaFiscal->getTotalComImpostos()), PHP_EOL;
 
 echo "Nota Fiscal:\n";
-echo $notaFiscal->toXml(), PHP_EOL;
+echo $notaFiscal->getXml(), PHP_EOL;
