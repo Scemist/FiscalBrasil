@@ -3,6 +3,7 @@
 namespace Imposto\Fiscal\RegimeTributario;
 
 use Imposto\Catalogo\UFs\UF;
+use Imposto\Domain\NotaFiscal\NotaFiscalDeProduto;
 use Imposto\Domain\ProdutoFiscal\NCM;
 use Imposto\Fiscal\CST\CST;
 
@@ -64,11 +65,17 @@ class SimplesNacional implements RegimeTributarioInterface
 		return in_array($cst->getCodigo(), ['040', '041', '060']);
 	}
 
-	public function getXml(array $itens): string
+	public function getXml(NotaFiscalDeProduto $notaFiscal): string
 	{
 		$xml = "<notaFiscal>\n";
+		$xml .= "  <regimeTributario>Simples Nacional</regimeTributario>\n";
+		$xml .= "  <origem>" . $notaFiscal->getOrigem()->value . "</origem>\n";
+		$xml .= "  <destino>" . $notaFiscal->getDestino()->value . "</destino>\n";
+		$xml .= "  <dataEmissao>" . date('Y-m-d\TH:i:sP') . "</dataEmissao>\n";
+		$xml .= "  <subtotal>" . number_format($notaFiscal->getSubtotal(), 2, '.', '') . "</subtotal>\n";
+		$xml .= "  <icms>" . number_format($notaFiscal->getICMS(), 2, '.', '') . "</icms>\n";
 
-		foreach ($itens as $item) {
+		foreach ($notaFiscal->getItens() as $item) {
 			$xml .= "  <item>\n";
 			$xml .= "    <descricao>" . htmlspecialchars($item->getNome(), ENT_XML1, 'UTF-8') . "</descricao>\n";
 			$xml .= "    <quantidade>" . (int)$item->getQuantidade() . "</quantidade>\n";

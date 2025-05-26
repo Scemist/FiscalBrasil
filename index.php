@@ -4,7 +4,6 @@ require_once 'vendor/autoload.php';
 
 use Imposto\Domain\Pedido\Pedido;
 use Imposto\Domain\Pedido\ItemPedido;
-use Imposto\Domain\Item\ItemNotaFiscalDeProduto;
 use Imposto\Domain\ProdutoFiscal\NCM;
 use Imposto\Fiscal\CST\CST;
 use Imposto\Fiscal\CFOP\CFOP5102;

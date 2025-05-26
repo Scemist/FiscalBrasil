@@ -21,6 +21,11 @@ class NotaFiscalDeProduto implements NotaFiscalInterface
 			$item->setNotaFiscal($this);
 	}
 
+	public function getItens(): array
+	{
+		return $this->itens;
+	}
+
 	public function getRegimeTributario(): RegimeTributarioInterface
 	{
 		return $this->regimeTributario;
@@ -28,7 +33,7 @@ class NotaFiscalDeProduto implements NotaFiscalInterface
 
 	public function getXml(): string
 	{
-		return $this->regimeTributario->getXml($this->itens);
+		return $this->regimeTributario->getXml($this);
 	}
 
 	public function getSubtotal(): float
