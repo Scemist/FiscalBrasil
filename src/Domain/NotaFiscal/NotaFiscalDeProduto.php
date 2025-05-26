@@ -47,7 +47,9 @@ class NotaFiscalDeProduto implements NotaFiscalInterface
 
 	public function getIPI(): float
 	{
-		return $this->regimeTributario->calcularIPI($this->itens);
+		return array_reduce($this->itens, function (float $total, ItemPedido $item) {
+			return $total + $item->getIPI();
+		}, 0.0);
 	}
 
 	public function getISS(): float

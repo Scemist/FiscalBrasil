@@ -73,7 +73,12 @@ class ItemPedido
 	public function getIPI(): float
 	{
 		$this->ensureNotaFiscal();
-		return 0.0;
+
+		$aliquota = $this->notaFiscal->getRegimeTributario()->getAliquotaIPI(
+			$this->getNCM(),
+			$this->getCST(),
+		);
+		return $aliquota * $this->getSubtotal();
 	}
 
 	public function getPis(): float
