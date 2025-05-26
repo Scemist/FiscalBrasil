@@ -4,7 +4,11 @@ namespace Imposto\Fiscal\CFOP;
 
 class CFOP
 {
-	public function __construct(private string $codigo) {}
+	public function __construct(private string $codigo)
+	{
+		if (!preg_match('/^\d{4}$/', $codigo))
+			throw new \Exception("CFOP [$codigo] inválido: deve conter 4 dígitos numéricos.");
+	}
 
 	public function getCodigo(): string
 	{

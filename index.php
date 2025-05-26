@@ -24,7 +24,7 @@ $pedido->addItem(new ItemPedido(
 	preco: 1099.0,
 	quantidade: 1,
 	unidade: Unidade::UNIDADE,
-	ncm: new NCM('9207.90.10'),
+	ncm: new NCM('92079010'),
 	cst: new CST('000'),
 	cfop: new CFOP('5102'),
 ));
@@ -34,7 +34,7 @@ $pedido->addItem(new ItemPedido(
 	preco: 399.0,
 	quantidade: 2,
 	unidade: Unidade::UNIDADE,
-	ncm: new NCM('9207.90.90'),
+	ncm: new NCM('92079090'),
 	cst: new CST('000'),
 	cfop: new CFOP('5102')
 ));
