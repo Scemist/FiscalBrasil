@@ -2,7 +2,7 @@
 
 namespace Imposto\Domain\NotaFiscal;
 
-class NotaFiscalServico
+class NotaFiscalDeServico
 {
 	private string $descricao;
 	private float $valorUnitario;

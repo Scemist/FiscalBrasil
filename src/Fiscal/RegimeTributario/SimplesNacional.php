@@ -3,46 +3,47 @@
 namespace Imposto\Fiscal\RegimeTributario;
 
 use Imposto\Catalogo\UFs\UF;
+use Imposto\Domain\ProdutoFiscal\NCM;
+use Imposto\Fiscal\CST\CST;
 
 class SimplesNacional implements RegimeTributarioInterface
 {
-	public function calcularICMS(array $itens, UF $origem, UF $destino): float
-	{
-		$total = 0.0;
+	// public function calcularICMS(array $itens, UF $origem, UF $destino): float
+	// {
+	// 	$total = 0.0;
 
-		foreach ($itens as $item) {
-			$produto = $item->getItem();
-			$cst = $produto->getCST()->getCodigo();
+	// 	foreach ($itens as $item) {
+	// 		$produto = $item->getItem();
+	// 		$cst = $produto->getCST()->getCodigo();
 
-			if ($this->getCstIndicaIsencaoDeICMS($cst))
-				continue;
+	// 		if ($this->getCstIndicaIsencaoDeICMS($cst))
+	// 			continue;
 
-			$aliquota = $this->getAliquotaICMS(
-				$produto->getNCM()->getCodigo(),
-				$origem,
-				$destino,
-				$cst
-			);
+	// 		$aliquota = $this->getAliquotaICMS(
+	// 			$produto->getNCM()->getCodigo(),
+	// 			$origem,
+	// 			$destino,
+	// 			$cst
+	// 		);
 
-			$total += $item->getSubtotal() * $aliquota;
-		}
+	// 		$total += $item->getSubtotal() * $aliquota;
+	// 	}
 
-		return $total;
-	}
+	// 	return $total;
+	// }
 
 	public function calcularIPI(array $itens): float
 	{
 		$total = 0.0;
 
 		foreach ($itens as $item) {
-			$produto = $item->getItem();
-			$cst = $produto->getCST()->getCodigo();
+			$cst = $item->getCST()->getCodigo();
 
 			if ($this->getCstIndicaIsencaoDeIPI($cst))
 				continue;
 
 			$aliquota = $this->getAliquotaIPI(
-				$produto->getNCM()->getCodigo(),
+				$item->getNCM()->getCodigo(),
 				$cst
 			);
 
@@ -57,7 +58,7 @@ class SimplesNacional implements RegimeTributarioInterface
 		return 0.0;
 	}
 
-	public function getAliquotaICMS(string $ncm, UF $ufOrigem, UF $ufDestino, string $cst): float
+	public function getAliquotaICMS(NCM $ncm, UF $ufOrigem, UF $ufDestino, CST $cst): float
 	{
 		// Exemplo de regra: interestadual com CST 000 -> 12%
 		if ($cst === '000' && $ufOrigem !== $ufDestino)

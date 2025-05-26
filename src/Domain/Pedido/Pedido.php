@@ -6,7 +6,7 @@ use Imposto\Catalogo\UFs\UF;
 use Imposto\Domain\Pedido\ItemPedido;
 use Imposto\Domain\NotaFiscal\NotaFiscalInterface;
 use Imposto\Fiscal\RegimeTributario\RegimeTributarioInterface;
-use Imposto\Domain\NotaFiscal\NotaFiscalProduto;
+use Imposto\Domain\NotaFiscal\NotaFiscalDeProduto;
 
 class Pedido
 {
@@ -28,7 +28,7 @@ class Pedido
 		if (empty($this->itens))
 			throw new \Exception("Pedido sem itens.");
 
-		return new NotaFiscalProduto($this->itens, $this->regimeTributario, $this->origem, $this->destino);
+		return new NotaFiscalDeProduto($this->itens, $this->regimeTributario, $this->origem, $this->destino);
 	}
 
 	public function getSubtotal(): float
