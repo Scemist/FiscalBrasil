@@ -1,0 +1,58 @@
+[
+	{
+		"id": 1,
+		"nome": "Guitarra Stratocaster",
+		"descricao": "Guitarra elétrica de corpo sólido",
+		"preco_unitario": 1099.00,
+		"desconto_percentual": 0.0,
+		"unidade": "UN",
+		"ncm": "9207.90.10",
+		"cest": "28.038.00",
+		"origem": 0,
+		"aplica_ipi": true,
+		"aplica_st": true,
+		"ativo": true
+	},
+	{
+		"id": 2,
+		"nome": "Pedal de Efeito Overdrive",
+		"descricao": "Pedal analógico para distorção leve",
+		"preco_unitario": 399.00,
+		"desconto_percentual": 10.0,
+		"unidade": "UN",
+		"ncm": "9207.90.90",
+		"cest": "28.039.00",
+		"origem": 0,
+		"aplica_ipi": true,
+		"aplica_st": true,
+		"ativo": true
+	},
+	{
+		"id": 3,
+		"nome": "Fonte Chaveada 9V",
+		"descricao": "Fonte para alimentar pedais de efeitos",
+		"preco_unitario": 59.90,
+		"desconto_percentual": 0.0,
+		"unidade": "UN",
+		"ncm": "8504.40.21",
+		"cest": "21.040.00",
+		"origem": 0,
+		"aplica_ipi": false,
+		"aplica_st": false,
+		"ativo": true
+	},
+	{
+		"id": 4,
+		"nome": "Case para Guitarra",
+		"descricao": "Case rígido universal para guitarra elétrica",
+		"preco_unitario": 229.00,
+		"desconto_percentual": 5.0,
+		"unidade": "UN",
+		"ncm": "4202.92.00",
+		"cest": "16.020.00",
+		"origem": 0,
+		"aplica_ipi": false,
+		"aplica_st": false,
+		"ativo": true
+	}
+]

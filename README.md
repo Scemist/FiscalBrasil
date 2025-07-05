@@ -97,3 +97,83 @@ Total com Impostos: 2219,49
     </item>
 </notaFiscal>
 ```
+
+# Quais os Requisitos para Usar?
+
+Para o correto cálculo de impostos no Brasil, algumas informações são obrigatórias e esta biblioteca não pode inferir automaticamente. Você precisará informar.
+
+Dividimos essas informações em três grupos:
+
+### 🏢 **Empresa**
+
+Informações sobre sua própria empresa, como:
+
+* Regime tributário (Simples Nacional, Lucro Presumido etc.)
+* Estado de origem da mercadoria
+
+Esses dados são informados ao criar o **Pedido**.
+
+---
+
+### 👤 **Cliente**
+
+Informações sobre o destinatário da nota fiscal:
+
+* Tipo de pessoa (Física ou Jurídica)
+* Estado de destino
+* Se é consumidor final
+* Se é contribuinte de ICMS
+
+Também informadas ao criar o **Pedido**.
+
+---
+
+### 📦 **Produto**
+
+Informações fiscais fixas sobre o produto:
+
+* **NCM** (Classificação Fiscal)
+* **CEST** (se aplicável)
+* **Origem da mercadoria**
+* **Aplica IPI?**
+* **Aplica ST (Substituição Tributária)?**
+
+Essas informações devem estar cadastradas no banco de dados e são utilizadas automaticamente ao criar os **itens do Pedido**.
+
+---
+
+## 🧾 Exemplos de Cadatros
+
+Na pasta `exemplos/`, você encontrará arquivos JSON simulando a estrutura das tabelas `produtos` e `grupos_fiscais` com todos os campos obrigatórios. Eles servem como referência para seu sistema de cadastro.
+
+---
+
+## 📃 Onde Encontro Estes Dados ao Fazer o Cadastro do Produto?
+
+* **NCM** (Classificação Fiscal): disponível no site da Receita Federal ou em ferramentas como:
+  👉 [Portal Classif – Receita Federal](https://portalunico.siscomex.gov.br/classif/#/sumario)
+
+* **CEST**: normalmente derivado do NCM. Se não souber, busque por "CEST \[nome do produto]" ou consulte seu contador.
+
+* **Origem da mercadoria** (Código de origem):
+
+  * `0`: Nacional
+  * `1`: Importado diretamente
+  * `2`: Importado adquirido de terceiros
+
+* **Aplica IPI?**
+
+  * ✅ Sim: se sua empresa fabrica ou importa o produto
+  * ❌ Não: se apenas revende produtos prontos comprados no Brasil
+
+* **Aplica ST?**
+
+  * ✅ Sim: cada estado tem uma Tabela de Produtos Sujeito a Substituição Tributária (ST). Se o produto estiver nessa tabela, marque como sim.
+  * ❌ Não: se não ou se estiver em dúvida (o sistema pode validar depois)
+
+---
+
+## ✅ Conclusão
+
+Todos esses campos são **obrigatórios** para que a biblioteca calcule corretamente os tributos e gere a nota fiscal.
+Garanta que eles estejam corretamente preenchidos no cadastro de produtos.

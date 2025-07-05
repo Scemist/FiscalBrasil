@@ -1,0 +1,29 @@
+[
+	{
+		"regimeTributario": "simples_nacional",
+		"origem": "sp",
+		"destino": "mg",
+		"tipoPessoa": "pf",
+		"consumidorFinal": true,
+		"contribuinteICMS": false,
+		"presencial": false
+	},
+	{
+		"regimeTributario": "lucro_presumido",
+		"origem": "sp",
+		"destino": "rj",
+		"tipoPessoa": "pj",
+		"consumidorFinal": false,
+		"contribuinteICMS": true,
+		"presencial": true
+	},
+	{
+		"regimeTributario": "lucro_real",
+		"origem": "sp",
+		"destino": "pr",
+		"tipoPessoa": "pf",
+		"consumidorFinal": true,
+		"contribuinteICMS": false,
+		"presencial": false
+	}
+]
