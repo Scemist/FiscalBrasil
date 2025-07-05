@@ -1,18 +1,20 @@
 # NotaFiscal-> deve conter estes métodos
 
-- ✅ Subtotal:               $notaFiscal->getSubtotal()
-- ✅ ICMS:                   $notaFiscal->getICMS()
-- ✅ IPI:                    $notaFiscal->getIPI()
-- ✅ Total com Impostos:     $notaFiscal->getTotalComImpostos()
-- ✅ Nota Fiscal             $notaFiscal->getXml()
-- ❌ ISO 8601 ou DateTime:   $notaFiscal->getDataEmissao()
-- ❌ UF Origem:              $notaFiscal->getOrigem()
-- ❌ UF Destino:             $notaFiscal->getDestino()
-- ❌ Simples Nacional etc:   $notaFiscal->getRegimeTributario()
-- ❌ Soma dos produtos:      $notaFiscal->getSubtotal()
-- ❌ Total ICMS:             $notaFiscal->getICMS()
-- ❌ Total IPI:              $notaFiscal->getIPI()
-- ❌ Soma com ICMS + IPI:    $notaFiscal->getTotalComImpostos()
+| Status |Descrição             | Método                  |
+| ------ | -------------------- | ----------------------- |
+| ✅     | Subtotal             | $notaFiscal->getSubtotal() |
+| ✅     | ICMS                 | $notaFiscal->getICMS() |
+| ✅     | IPI                  | $notaFiscal->getIPI() |
+| ✅     | Total com Impostos   | $notaFiscal->getTotalComImpostos() |
+| ✅     | Nota Fiscal          | $notaFiscal->getXml() |
+| ❌     | ISO 8601 ou DateTime | $notaFiscal->getDataEmissao() |
+| ❌     | UF Origem            | $notaFiscal->getOrigem() |
+| ❌     | UF Destino           | $notaFiscal->getDestino() |
+| ❌     | Simples Nacional etc | $notaFiscal->getRegimeTributario() |
+| ❌     | Soma dos produtos    | $notaFiscal->getSubtotal() |
+| ❌     | Total ICMS           | $notaFiscal->getICMS() |
+| ❌     | Total IPI            | $notaFiscal->getIPI() |
+| ❌     | Soma com ICMS + IPI  | $notaFiscal->getTotalComImpostos() |
 
 # NotaFiscal->getXml() deve se parecer com isto:
 
