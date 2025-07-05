@@ -1,4 +1,12 @@
-# Exemplo de Uso
+## O Que é Esta Biblioteca?
+
+Esta biblioteca é uma solução para calcular impostos e todos os valores relacionados sobre vendas no Brasil.
+
+## O Que **não** é Esta Biblioteca?
+
+Esta biblioteca não faz integrações com serviços externos e nem gera notas fiscais eletrônicas (NF-e) diretamente. Ela se concentra no cálculo de tributos e na estruturação dos dados necessários para a emissão de notas fiscais.
+
+# 💡 Como Uso?
 
 Gerando um pedido com dois itens
 
@@ -16,7 +24,7 @@ use Imposto\Fiscal\RegimeTributario\SimplesNacional;
 use Imposto\Catalogo\UFs\UF;
 use Imposto\Catalogo\Unidade\Unidade;
 
-# Criação do Pedido
+# Criando um Pedido
 
 $pedido = new Pedido(
     regimeTributario: new SimplesNacional(),
@@ -48,7 +56,7 @@ $pedido->addItem(new ItemPedido(
     cfop: new CFOP('5102')
 ));
 
-# Dados Gerados
+# Utilizando os Dados Gerados
 
 $notaFiscal = $pedido->getNotaFiscal();
 
@@ -62,7 +70,7 @@ echo
 
 ```
 
-## Resultado
+## 🚀 Resultado
 
 ```
 Subtotal: 1897,00
@@ -98,7 +106,7 @@ Total com Impostos: 2219,49
 </notaFiscal>
 ```
 
-# Quais os Requisitos para Usar?
+# 📝 Quais os Requisitos para Usar?
 
 Para o correto cálculo de impostos no Brasil, algumas informações são obrigatórias e esta biblioteca não pode inferir automaticamente. Você precisará informar.
 
@@ -113,8 +121,6 @@ Informações sobre sua própria empresa, como:
 
 Esses dados são informados ao criar o **Pedido**.
 
----
-
 ### 👤 **Cliente**
 
 Informações sobre o destinatário da nota fiscal:
@@ -125,8 +131,6 @@ Informações sobre o destinatário da nota fiscal:
 * Se é contribuinte de ICMS
 
 Também informadas ao criar o **Pedido**.
-
----
 
 ### 📦 **Produto**
 
@@ -140,13 +144,9 @@ Informações fiscais fixas sobre o produto:
 
 Essas informações devem estar cadastradas no banco de dados e são utilizadas automaticamente ao criar os **itens do Pedido**.
 
----
-
 ## 🧾 Exemplos de Cadatros
 
-Na pasta `exemplos/`, você encontrará arquivos JSON simulando a estrutura das tabelas `produtos` e `grupos_fiscais` com todos os campos obrigatórios. Eles servem como referência para seu sistema de cadastro.
-
----
+Na pasta `exemplos/`, você encontrará arquivos JSON simulando a estrutura das tabelas `produtos` e `pedidos` com todos os campos obrigatórios. Eles servem como referência para seu sistema de cadastro.
 
 ## 📃 Onde Encontro Estes Dados ao Fazer o Cadastro do Produto?
 
@@ -171,9 +171,11 @@ Na pasta `exemplos/`, você encontrará arquivos JSON simulando a estrutura das 
   * ✅ Sim: cada estado tem uma Tabela de Produtos Sujeito a Substituição Tributária (ST). Se o produto estiver nessa tabela, marque como sim.
   * ❌ Não: se não ou se estiver em dúvida (o sistema pode validar depois)
 
----
-
 ## ✅ Conclusão
 
 Todos esses campos são **obrigatórios** para que a biblioteca calcule corretamente os tributos e gere a nota fiscal.
 Garanta que eles estejam corretamente preenchidos no cadastro de produtos.
+
+# 📍 Status da Biblioteca
+
+> Em desenvolvimento Alpha. Não é recomendada para produção ainda.
