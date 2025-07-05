@@ -18,6 +18,7 @@
 
 # NotaFiscal->getXml() deve se parecer com isto:
 
+```xml
 <notaFiscal>
   <regimeTributario>Simples Nacional</regimeTributario>
   <origem>SP</origem>
@@ -77,3 +78,4 @@
     </item>
   </itens>
 </notaFiscal>
+```
