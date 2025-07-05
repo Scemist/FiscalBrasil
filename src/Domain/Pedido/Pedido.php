@@ -18,6 +18,9 @@ class Pedido
 		private UF $origem,
 		private UF $destino,
 		private TipoPessoa $tipoPessoa,
+		private bool $consumidorFinal = false,
+		private bool $contribuinteICMS = false,
+		private bool $presencial = false,
 	) {}
 
 	public function addItem(ItemPedido $item): void
