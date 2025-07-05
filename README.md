@@ -128,7 +128,7 @@ Informações sobre o destinatário da nota fiscal:
 * Tipo de pessoa (Física ou Jurídica)
 * Estado de destino
 * Se é consumidor final
-* Se é contribuinte de ICMS
+* Se é contribuinte de ICMS ([Consulta se Tem IE no Destino](https://www.consultaie.com.br/))
 
 Também informadas ao criar o **Pedido**.
 

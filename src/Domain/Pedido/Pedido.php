@@ -21,7 +21,18 @@ class Pedido
 		private bool $consumidorFinal = false,
 		private bool $contribuinteICMS = false,
 		private bool $presencial = false,
-	) {}
+	) {
+		$this->validar();
+	}
+
+	private function validar(): void
+	{
+		if ($this->tipoPessoa === TipoPessoa::PF && $this->contribuinteICMS)
+			throw new \Exception('Pessoa Física não pode ser contribuinte de ICMS.');
+
+		if ($this->tipoPessoa === TipoPessoa::PJ && !$this->contribuinteICMS && $this->consumidorFinal === false)
+			throw new \Exception('Empresa sem IE não pode ser considerada não consumidora final e não contribuinte ao mesmo tempo.');
+	}
 
 	public function addItem(ItemPedido $item): void
 	{
