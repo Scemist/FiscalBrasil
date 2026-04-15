@@ -6,102 +6,90 @@ use Imposto\Catalogo\Unidade\Unidade;
 use Imposto\Domain\NotaFiscal\NotaFiscalInterface;
 use Imposto\Domain\ProdutoFiscal\NCM;
 use Imposto\Fiscal\CFOP\CFOP;
-use Imposto\Fiscal\CST\CST;
+use Imposto\Fiscal\CST\SituacaoTributariaInterface;
 
 class ItemPedido
 {
-	private ?NotaFiscalInterface $notaFiscal = null;
+    private ?NotaFiscalInterface $notaFiscal = null;
 
-	public function __construct(
-		private string $nome,
-		private float $preco,
-		private float $quantidade,
-		private Unidade $unidade,
-		private NCM $ncm,
-		private CST $cst,
-		private CFOP $cfop,
-	) {}
+    public function __construct(
+        private string $nome,
+        private float $preco,
+        private float $quantidade,
+        private Unidade $unidade,
+        private NCM $ncm,
+        private SituacaoTributariaInterface $situacaoTributaria,
+        private CFOP $cfop,
+        private int $origemMercadoria = 0,
+        private float $desconto = 0.0,
+    ) {}
 
-	public function getQuantidade(): int
-	{
-		return $this->quantidade;
-	}
+    public function getNome(): string { return $this->nome; }
+    public function getPreco(): float { return $this->preco; }
+    public function getQuantidade(): float { return $this->quantidade; }
+    public function getUnidade(): Unidade { return $this->unidade; }
+    public function getNCM(): NCM { return $this->ncm; }
+    public function getSituacaoTributaria(): SituacaoTributariaInterface { return $this->situacaoTributaria; }
+    public function getCFOP(): CFOP { return $this->cfop; }
+    public function getOrigemMercadoria(): int { return $this->origemMercadoria; }
+    public function getDesconto(): float { return $this->desconto; }
 
-	public function getNome(): string
-	{
-		return $this->nome;
-	}
+    public function getSubtotal(): float
+    {
+        return $this->preco * $this->quantidade;
+    }
 
-	public function getPreco(): float
-	{
-		return $this->preco;
-	}
+    public function getValorLiquido(): float
+    {
+        return $this->getSubtotal() - $this->desconto;
+    }
 
-	public function getNCM(): NCM
-	{
-		return $this->ncm;
-	}
+    public function getICMS(): float
+    {
+        $this->ensureNotaFiscal();
 
-	public function getCST(): CST
-	{
-		return $this->cst;
-	}
+        $aliquota = $this->notaFiscal->getRegimeTributario()->getAliquotaICMS(
+            $this->ncm,
+            $this->notaFiscal->getOrigem(),
+            $this->notaFiscal->getDestino(),
+            $this->situacaoTributaria,
+        );
 
-	public function getCFOP(): CFOP
-	{
-		return $this->cfop;
-	}
+        return $aliquota * $this->getValorLiquido();
+    }
 
-	public function getICMS(): float
-	{
-		$this->ensureNotaFiscal();
+    public function getIPI(): float
+    {
+        $this->ensureNotaFiscal();
 
-		$aliquota = $this->notaFiscal->getRegimeTributario()->getAliquotaICMS(
-			$this->getNCM(),
-			$this->notaFiscal->getOrigem(),
-			$this->notaFiscal->getDestino(),
-			$this->getCST(),
-		);
+        $aliquota = $this->notaFiscal->getRegimeTributario()->getAliquotaIPI(
+            $this->ncm,
+            $this->situacaoTributaria,
+        );
 
-		return $aliquota * $this->getSubtotal();
-	}
+        return $aliquota * $this->getValorLiquido();
+    }
 
-	public function getSubtotal(): float
-	{
-		return $this->preco * $this->quantidade;
-	}
+    public function getPIS(): float
+    {
+        $this->ensureNotaFiscal();
+        return 0.0;
+    }
 
-	public function getIPI(): float
-	{
-		$this->ensureNotaFiscal();
+    public function getCOFINS(): float
+    {
+        $this->ensureNotaFiscal();
+        return 0.0;
+    }
 
-		$aliquota = $this->notaFiscal->getRegimeTributario()->getAliquotaIPI(
-			$this->getNCM(),
-			$this->getCST(),
-		);
-		return $aliquota * $this->getSubtotal();
-	}
+    public function setNotaFiscal(NotaFiscalInterface $notaFiscal): void
+    {
+        $this->notaFiscal = $notaFiscal;
+    }
 
-	public function getPis(): float
-	{
-		$this->ensureNotaFiscal();
-		return 0.0;
-	}
-
-	public function getCofins(): float
-	{
-		$this->ensureNotaFiscal();
-		return 0.0;
-	}
-
-	public function setNotaFiscal(NotaFiscalInterface $notaFiscal): void
-	{
-		$this->notaFiscal = $notaFiscal;
-	}
-
-	private function ensureNotaFiscal(): void
-	{
-		if ($this->notaFiscal === null)
-			throw new \Exception('A Nota Fiscal precisa ser definida para ter esta informação.');
-	}
+    private function ensureNotaFiscal(): void
+    {
+        if ($this->notaFiscal === null)
+            throw new \RuntimeException('A Nota Fiscal precisa ser definida antes de calcular impostos.');
+    }
 }

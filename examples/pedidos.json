@@ -1,29 +1,12 @@
 [
-	{
-		"regimeTributario": "simples_nacional",
-		"origem": "sp",
-		"destino": "mg",
-		"tipoPessoa": "pf",
-		"consumidorFinal": true,
-		"contribuinteICMS": false,
-		"presencial": false
-	},
-	{
-		"regimeTributario": "lucro_presumido",
-		"origem": "sp",
-		"destino": "rj",
-		"tipoPessoa": "pj",
-		"consumidorFinal": false,
-		"contribuinteICMS": true,
-		"presencial": true
-	},
-	{
-		"regimeTributario": "lucro_real",
-		"origem": "sp",
-		"destino": "pr",
-		"tipoPessoa": "pf",
-		"consumidorFinal": true,
-		"contribuinteICMS": false,
-		"presencial": false
-	}
+  {
+    "id": 1,
+    "emitente_id": 1,
+    "destinatario_id": 1,
+    "regime_tributario": "simples_nacional",
+    "consumidor_final": true,
+    "presencial": false,
+    "pagamento_tipo": "01",
+    "pagamento_valor": 92.94
+  }
 ]

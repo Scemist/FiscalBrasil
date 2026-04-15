@@ -3,111 +3,91 @@
 namespace Imposto\Fiscal\RegimeTributario;
 
 use Imposto\Catalogo\UFs\UF;
-use Imposto\Domain\NotaFiscal\NotaFiscalDeProduto;
+use Imposto\Domain\NotaFiscal\NotaFiscalInterface;
 use Imposto\Domain\ProdutoFiscal\NCM;
-use Imposto\Fiscal\CST\CST;
-use Imposto\Fiscal\GNRE\GNRE;
+use Imposto\Fiscal\CST\CSOSN;
+use Imposto\Fiscal\CST\SituacaoTributariaInterface;
 
 class SimplesNacional implements RegimeTributarioInterface
 {
-	public function getAliquotaIPI(NCM $ncm, CST $cst): float
-	{
-		if ($this->getCstIndicaIsencaoDeIPI($cst))
-			return 0.0;
+    public function getCodigoRegimeTributario(): int
+    {
+        return 1;
+    }
 
-		if (in_array($cst->getCodigo(), ['050', '099']))
-			return 0.10;
+    public function getAliquotaICMS(NCM $ncm, UF $origem, UF $destino, SituacaoTributariaInterface $situacao): float
+    {
+        return 0.0;
+    }
 
-		return 0.05;
-	}
+    public function getAliquotaIPI(NCM $ncm, SituacaoTributariaInterface $situacao): float
+    {
+        return 0.0;
+    }
 
-	public function getAliquotaICMS(NCM $ncm, UF $ufOrigem, UF $ufDestino, CST $cst): float
-	{
-		if ($this->getCstIndicaIsencaoDeICMS($cst))
-			return 0.0;
+    public function getDIFAL(NCM $ncm, UF $origem, UF $destino): float
+    {
+        return 0.0;
+    }
 
-		if ($cst->getCodigo() === '000' && $this->getIsInterestadual($ufOrigem, $ufDestino))
-			return 0.12;
+    public function getDeveGerarGNRE(NotaFiscalInterface $notaFiscal): bool
+    {
+        return false;
+    }
 
-		if ($cst->getCodigo() === '000')
-			return 0.18;
+    public function getBlocoICMSXml(NCM $ncm, SituacaoTributariaInterface $situacao, int $origemMercadoria, UF $origem, UF $destino, float $baseCalculo): array
+    {
+        $csosn = $situacao instanceof CSOSN ? $situacao : CSOSN::NaoTributada;
 
-		return 0.0;
-	}
+        return match($csosn) {
+            CSOSN::STRecolhidaAnteriormente => [
+                'tag'    => 'ICMSSN500',
+                'campos' => ['orig' => $origemMercadoria, 'CSOSN' => '500', 'vBCSTRet' => '0.00', 'pST' => '0.00', 'vICMSSTRet' => '0.00'],
+            ],
+            CSOSN::TributadaComPermissaoDeCredito => [
+                'tag'    => 'ICMSSN101',
+                'campos' => ['orig' => $origemMercadoria, 'CSOSN' => '101', 'pCredSN' => '0.00', 'vCredICMSSN' => '0.00'],
+            ],
+            CSOSN::TributadaComCreditoEComST => [
+                'tag'    => 'ICMSSN201',
+                'campos' => ['orig' => $origemMercadoria, 'CSOSN' => '201', 'modBCST' => 4, 'pMVAST' => '0.00', 'vBCST' => '0.00', 'pICMSST' => '0.00', 'vICMSST' => '0.00', 'pCredSN' => '0.00', 'vCredICMSSN' => '0.00'],
+            ],
+            CSOSN::TributadaSemCreditoEComST, CSOSN::IsentaPorFaixaComST => [
+                'tag'    => 'ICMSSN202',
+                'campos' => ['orig' => $origemMercadoria, 'CSOSN' => $csosn->value, 'modBCST' => 4, 'pMVAST' => '0.00', 'vBCST' => '0.00', 'pICMSST' => '0.00', 'vICMSST' => '0.00'],
+            ],
+            CSOSN::Outros => [
+                'tag'    => 'ICMSSN900',
+                'campos' => ['orig' => $origemMercadoria, 'CSOSN' => '900', 'modBC' => 3, 'vBC' => number_format($baseCalculo, 2, '.', ''), 'pICMS' => '0.00', 'vICMS' => '0.00'],
+            ],
+            default => [
+                'tag'    => 'ICMSSN' . $csosn->value,
+                'campos' => ['orig' => $origemMercadoria, 'CSOSN' => $csosn->value],
+            ],
+        };
+    }
 
-	private function getIsInterestadual(UF $ufOrigem, UF $ufDestino): bool
-	{
-		return $ufOrigem !== $ufDestino;
-	}
+    public function getBlocoIPIXml(NCM $ncm, SituacaoTributariaInterface $situacao, float $baseCalculo): array
+    {
+        return [
+            'tag'    => 'IPINT',
+            'campos' => ['cEnq' => '001', 'CST' => '53'],
+        ];
+    }
 
-	public function getAliquotaISS(): float
-	{
-		# Simples Nacional geralmente não tem ISS sobre produtos
-		return 0.0;
-	}
+    public function getBlocoPISXml(SituacaoTributariaInterface $situacao, float $baseCalculo): array
+    {
+        return [
+            'tag'    => 'PISNT',
+            'campos' => ['CST' => '07'],
+        ];
+    }
 
-	public function getAliquotaPIS(NCM $ncm, CST $cst): float
-	{
-		return 0.0165;
-	}
-
-	public function getAliquotaCOFINS(NCM $ncm, CST $cst): float
-	{
-		return 0.076;
-	}
-
-	public function getCstIndicaIsencaoDeIPI(CST $cst): bool
-	{
-		return in_array($cst->getCodigo(), ['040', '041', '050']);
-	}
-
-	public function getCstIndicaIsencaoDeICMS(CST $cst): bool
-	{
-		return in_array($cst->getCodigo(), ['040', '041', '060']);
-	}
-
-	public function getDeveGerarGNRE(NotaFiscalInterface $notaFiscal): bool
-	{
-		# GNRE é geralmente para tributos estaduais, como ICMS
-		# No Simples Nacional, tributos são unificados, então não gera GNRE
-		return false;
-	}
-
-	public function getGNRE(NotaFiscalInterface $notaFiscal): GNRE
-	{
-		throw new \Exception("GNRE não é aplicável para Simples Nacional");
-	}
-
-	public function getDIFAL(ItemPedido $item, UF $ufOrigem, UF $ufDestino): float
-	{
-		# Simples Nacional normalmente não recolhe DIFAL, então retorna 0
-		return 0.0;
-	}
-
-	public function getXml(NotaFiscalDeProduto $notaFiscal): string
-	{
-		$xml = "<notaFiscal>\n";
-		$xml .= "  <regimeTributario>Simples Nacional</regimeTributario>\n";
-		$xml .= "  <origem>" . $notaFiscal->getOrigem()->value . "</origem>\n";
-		$xml .= "  <destino>" . $notaFiscal->getDestino()->value . "</destino>\n";
-		$xml .= "  <dataEmissao>" . date('Y-m-d\TH:i:sP') . "</dataEmissao>\n";
-		$xml .= "  <subtotal>" . number_format($notaFiscal->getSubtotal(), 2, '.', '') . "</subtotal>\n";
-		$xml .= "  <icms>" . number_format($notaFiscal->getICMS(), 2, '.', '') . "</icms>\n";
-
-		foreach ($notaFiscal->getItens() as $item) {
-			$xml .= "  <item>\n";
-			$xml .= "    <descricao>" . htmlspecialchars($item->getNome(), ENT_XML1, 'UTF-8') . "</descricao>\n";
-			$xml .= "    <quantidade>" . (int)$item->getQuantidade() . "</quantidade>\n";
-			$xml .= "    <preco>" . number_format($item->getPreco(), 2, '.', '') . "</preco>\n";
-			$xml .= "    <icms>" . number_format($item->getICMS(), 2, '.', '') . "</icms>\n";
-			$xml .= "    <ipi>" . number_format($item->getIPI(), 2, '.', '') . "</ipi>\n";
-			$xml .= "    <pis>" . number_format($item->getPis(), 2, '.', '') . "</pis>\n";
-			$xml .= "    <cofins>" . number_format($item->getCofins(), 2, '.', '') . "</cofins>\n";
-			$xml .= "  </item>\n";
-		}
-
-		$xml .= "</notaFiscal>";
-
-		return $xml;
-	}
+    public function getBlocoCOFINSXml(SituacaoTributariaInterface $situacao, float $baseCalculo): array
+    {
+        return [
+            'tag'    => 'COFINSNT',
+            'campos' => ['CST' => '07'],
+        ];
+    }
 }

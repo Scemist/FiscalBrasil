@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "cnpj": "57784466000142",
+    "razao_social": "Digiton Tecnologia Consultoria em TI Ltda - ME",
+    "nome_fantasia": "Digiton",
+	"inscricao_estadual": "122333444422",
+    "inscricao_municipal": "12345",
+    "codigo_regime_tributario": 1,
+    "endereco_id": 1
+  }
+]

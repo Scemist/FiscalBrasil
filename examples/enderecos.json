@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "logradouro": "Rua Comendador Gomes",
+    "numero": "505",
+    "complemento": null,
+    "bairro": "Vila Chica",
+    "municipio_codigo": "3509502",
+    "municipio_nome": "Campinas",
+    "estado": "SP",
+    "cep": "13069096",
+    "telefone": "18990000000"
+  },
+  {
+    "id": 2,
+    "logradouro": "Rua Michigan",
+    "numero": "531",
+    "complemento": "56A",
+    "bairro": "Brooklin",
+    "municipio_codigo": "3550308",
+    "municipio_nome": "Sao Paulo",
+    "estado": "SP",
+    "cep": "04566000",
+    "telefone": "18991111111"
+  }
+]

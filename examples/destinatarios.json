@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "tipo_pessoa": "pf",
+	"cpf": "12345678900",
+    "nome": "João Maria da Silva",
+    "indicador_ie": 9,
+    "inscricao_estadual": "",
+    "endereco_id": 2
+  }
+]
