@@ -175,7 +175,7 @@ class NFeBuilder
             $xml .= "        <fone>" . $end->getTelefone() . "</fone>\n";
 
         $xml .= "      </enderDest>\n"
-            . "      <indIEDest>" . $destinatario->getIndicadorIE() . "</indIEDest>\n";
+            . "      <indIEDest>" . $destinatario->getIndicadorIE()->value . "</indIEDest>\n";
 
         if ($destinatario->getInscricaoEstadual() !== '')
             $xml .= "      <IE>" . $destinatario->getInscricaoEstadual() . "</IE>\n";
@@ -190,7 +190,7 @@ class NFeBuilder
         $ncm         = $item->getNCM();
         $situacao    = $item->getSituacaoTributaria();
         $baseCalculo = $item->getValorLiquido();
-        $cProd       = $item->getCodigoProduto() !== '' ? $item->getCodigoProduto() : (string) $numero;
+        $cProd       = $item->getCodigoInterno() !== '' ? $item->getCodigoInterno() : (string) $numero;
         $cEAN        = $item->getCodigoBarras();
         $unidade     = $item->getUnidade()->value;
         $quantidade  = number_format($item->getQuantidade(), 4, '.', '');

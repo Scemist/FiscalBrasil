@@ -2,6 +2,7 @@
 
 namespace Imposto\Domain\Destinatario;
 
+use Imposto\Catalogo\IndicadorIE\IndicadorIE;
 use Imposto\Catalogo\TipoPessoa\TipoPessoa;
 use Imposto\Domain\Endereco\Endereco;
 
@@ -14,7 +15,7 @@ class Destinatario
         string $documento,
         private string $nome,
         private Endereco $endereco,
-        private int $indicadorIE,
+        private IndicadorIE $indicadorIE,
         private string $inscricaoEstadual = '',
     ) {
         $this->documento = preg_replace('/\D/', '', $documento);
@@ -24,15 +25,9 @@ class Destinatario
     public function getDocumento(): string { return $this->documento; }
     public function getNome(): string { return $this->nome; }
     public function getEndereco(): Endereco { return $this->endereco; }
-
-    /**
-     * 1 = Contribuinte ICMS
-     * 2 = Contribuinte isento de Inscrição
-     * 9 = Não Contribuinte
-     */
-    public function getIndicadorIE(): int { return $this->indicadorIE; }
+    public function getIndicadorIE(): IndicadorIE { return $this->indicadorIE; }
     public function getInscricaoEstadual(): string { return $this->inscricaoEstadual; }
 
-    public function isContribuinteICMS(): bool { return $this->indicadorIE === 1; }
+    public function isContribuinteICMS(): bool { return $this->indicadorIE === IndicadorIE::ContribuinteICMS; }
     public function isPessoaFisica(): bool { return $this->tipoPessoa === TipoPessoa::PF; }
 }

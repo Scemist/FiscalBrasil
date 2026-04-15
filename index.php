@@ -2,6 +2,7 @@
 
 require_once 'vendor/autoload.php';
 
+use Imposto\Catalogo\IndicadorIE\IndicadorIE;
 use Imposto\Catalogo\TipoPessoa\TipoPessoa;
 use Imposto\Catalogo\UFs\UF;
 use Imposto\Catalogo\Unidade\Unidade;
@@ -16,13 +17,13 @@ use Imposto\Fiscal\CST\CSOSN;
 use Imposto\Fiscal\RegimeTributario\SimplesNacional;
 
 $emitente = new Emitente(
-    cnpj:                     '12345678900000',
-    razaoSocial:              'Scemist Tecnologia LTDA',
-    nomeFantasia:             'Scemist',
-    inscricaoEstadual:        '000123456789',
-    codigoRegimeTributario:   1,
-    inscricaoMunicipal:       '12345',
-    endereco:                  new Endereco(
+    cnpj:                   '12345678900000',
+    razaoSocial:            'Scemist Tecnologia LTDA',
+    nomeFantasia:           'Scemist',
+    inscricaoEstadual:      '000123456789',
+    codigoRegimeTributario: 1,
+    inscricaoMunicipal:     '12345',
+    endereco: new Endereco(
         logradouro:      'Rua Comendador Gomes',
         numero:          '505',
         bairro:          'Vila Chica',
@@ -36,11 +37,11 @@ $emitente = new Emitente(
 );
 
 $destinatario = new Destinatario(
-    tipoPessoa:        TipoPessoa::PF,
-    documento:         '12345678910',
-    nome:              'João Maria da Silva',
-    indicadorIE:       9,
-    endereco:          new Endereco(
+    tipoPessoa:  TipoPessoa::PF,
+    documento:   '12345678910',
+    nome:        'João Maria da Silva',
+    indicadorIE: IndicadorIE::NaoContribuinte,
+    endereco: new Endereco(
         logradouro:      'Rua Michigan',
         numero:          '531',
         bairro:          'Brooklin',
@@ -54,11 +55,11 @@ $destinatario = new Destinatario(
 );
 
 $pedido = new Pedido(
-    emitente:          $emitente,
-    destinatario:      $destinatario,
-    regimeTributario:  new SimplesNacional(),
-    consumidorFinal:   true,
-    presencial:        false,
+    emitente:         $emitente,
+    destinatario:     $destinatario,
+    regimeTributario: new SimplesNacional(),
+    consumidorFinal:  true,
+    presencial:       false,
 );
 
 $pedido->addItem(new ItemPedido(
@@ -70,7 +71,7 @@ $pedido->addItem(new ItemPedido(
     situacaoTributaria: CSOSN::TributadaSemPermissaoDeCredito,
     cfop:               new CFOP('5102'),
     origemMercadoria:   0,
-    codigoProduto:      'GTR-001',
+    codigoInterno:      'GTR-001',
     codigoBarras:       'SEM GTIN',
 ));
 
@@ -84,7 +85,7 @@ $pedido->addItem(new ItemPedido(
     cfop:               new CFOP('5102'),
     origemMercadoria:   0,
     desconto:           39.90,
-    codigoProduto:      'PDL-002',
+    codigoInterno:      'PDL-002',
     codigoBarras:       'SEM GTIN',
 ));
 

@@ -22,7 +22,7 @@ class ItemPedido
         private CFOP $cfop,
         private int $origemMercadoria = 0,
         private float $desconto = 0.0,
-        private string $codigoProduto = '',
+        private string $codigoInterno = '',
         private string $codigoBarras = 'SEM GTIN',
         private string $codigoBeneficio = '',
         private string $numeroPedido = '',
@@ -40,7 +40,7 @@ class ItemPedido
     public function getCFOP(): CFOP { return $this->cfop; }
     public function getOrigemMercadoria(): int { return $this->origemMercadoria; }
     public function getDesconto(): float { return $this->desconto; }
-    public function getCodigoProduto(): string { return $this->codigoProduto; }
+    public function getCodigoInterno(): string { return $this->codigoInterno; }
     public function getCodigoBarras(): string { return $this->codigoBarras; }
     public function getCodigoBeneficio(): string { return $this->codigoBeneficio; }
     public function getNumeroPedido(): string { return $this->numeroPedido; }

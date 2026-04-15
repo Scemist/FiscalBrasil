@@ -49,7 +49,7 @@ $destinatario = new Destinatario(
     tipoPessoa:  TipoPessoa::PF,
     documento:   '12345678910',
     nome:        'João Maria da Silva',
-    indicadorIE: 9,   // 9 = não contribuinte
+    indicadorIE: IndicadorIE::NaoContribuinte,
     endereco: new Endereco(
         logradouro:      'Rua Michigan',
         numero:          '531',
@@ -78,6 +78,8 @@ $pedido->addItem(new ItemPedido(
     situacaoTributaria: CSOSN::TributadaSemPermissaoDeCredito,
     cfop:               new CFOP('5102'),
     origemMercadoria:   0,
+    codigoInterno:      'GTR-001',   // cProd — SKU interno da empresa
+    codigoBarras:       'SEM GTIN',  // cEAN — GTIN ou 'SEM GTIN'
 ));
 
 $pedido->addItem(new ItemPedido(
@@ -90,6 +92,8 @@ $pedido->addItem(new ItemPedido(
     cfop:               new CFOP('5102'),
     origemMercadoria:   0,
     desconto:           39.90,
+    codigoInterno:      'PDL-002',
+    codigoBarras:       'SEM GTIN',
 ));
 
 $notaFiscal = $pedido->getNotaFiscal();
@@ -182,11 +186,13 @@ Informações da sua empresa:
 Informações sobre o cliente:
 
 * Tipo de pessoa (Física ou Jurídica) e CPF/CNPJ
-* Indicador IE: `1` = contribuinte, `2` = isento, `9` = não contribuinte ([verificar aqui](https://www.consultaie.com.br/))
+* Indicador IE: `IndicadorIE::ContribuinteICMS`, `IndicadorIE::ContribuinteIsento`, `IndicadorIE::NaoContribuinte` ([verificar aqui](https://www.consultaie.com.br/))
 * Endereço completo
 
 ### Produto (por item)
 
+* **codigoInterno** — SKU ou código interno do produto na empresa (vira `<cProd>` no XML)
+* **codigoBarras** — GTIN/EAN do produto, ou `'SEM GTIN'` se não tiver (vira `<cEAN>`)
 * **NCM** — aceita formato com pontos (`9207.90.10`) ou sem (`92079010`)
 * **CSOSN** (Simples Nacional) ou **CST** (Regime Normal)
 * **CFOP** (ex: `5102` para venda dentro do estado)
