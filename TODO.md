@@ -1,88 +1,71 @@
 Atualmente focando em venda de produtos no simples nacional
 
-# NotaFiscal-> deve conter estes métodos
+# NotaFiscal — Métodos
 
-| Status |Descrição             | Método                  |
-| ------ | -------------------- | ----------------------- |
-| ✅     | Subtotal             | $notaFiscal->getSubtotal() |
-| ✅     | ICMS                 | $notaFiscal->getICMS() |
-| ✅     | IPI                  | $notaFiscal->getIPI() |
-| ✅     | Total com Impostos   | $notaFiscal->getTotalComImpostos() |
-| ✅     | Nota Fiscal          | $notaFiscal->getXml() |
-| ❌     | ISO 8601 ou DateTime | $notaFiscal->getDataEmissao() |
-| ❌     | UF Origem            | $notaFiscal->getOrigem() |
-| ❌     | UF Destino           | $notaFiscal->getDestino() |
-| ❌     | Simples Nacional etc | $notaFiscal->getRegimeTributario() |
-| ❌     | Soma dos produtos    | $notaFiscal->getSubtotal() |
-| ❌     | Total ICMS           | $notaFiscal->getICMS() |
-| ❌     | Total IPI            | $notaFiscal->getIPI() |
-| ❌     | Soma com ICMS + IPI  | $notaFiscal->getTotalComImpostos() |
+| Status | Descrição               | Método                              |
+| ------ | ----------------------- | ----------------------------------- |
+| ✅     | Subtotal bruto          | `$notaFiscal->getSubtotal()`        |
+| ✅     | Total de descontos      | `$notaFiscal->getDesconto()`        |
+| ✅     | Valor líquido           | `$notaFiscal->getValorLiquido()`    |
+| ✅     | Total ICMS              | `$notaFiscal->getICMS()`            |
+| ✅     | Total IPI               | `$notaFiscal->getIPI()`             |
+| ✅     | Total com impostos      | `$notaFiscal->getTotalComImpostos()`|
+| ✅     | XML NF-e 4.00           | `$notaFiscal->getXml()`             |
+| ✅     | UF Origem               | `$notaFiscal->getOrigem()`          |
+| ✅     | UF Destino              | `$notaFiscal->getDestino()`         |
+| ✅     | Regime tributário       | `$notaFiscal->getRegimeTributario()`|
+| ❌     | Data de emissão         | `$notaFiscal->getDataEmissao()`     |
 
-# NotaFiscal->getXml() deve se parecer com isto:
+# NotaFiscal->getXml() — formato de saída
+
+Retorna XML no padrão NF-e 4.00 da SEFAZ. Estrutura resumida:
 
 ```xml
-<notaFiscal>
-  <regimeTributario>Simples Nacional</regimeTributario>
-  <origem>SP</origem>
-  <destino>MG</destino>
-  <tipoPessoa>PF</tipoPessoa>
-  <consumidorFinal>true</consumidorFinal>
-  <contribuinteICMS>false</contribuinteICMS>
-  <presencial>false</presencial>
-  <dataEmissao>2025-07-05T14:32:00-03:00</dataEmissao>
-
-  <subtotal>1897.00</subtotal>
-  <totalDesconto>0.00</totalDesconto>
-  <totalICMS>227.64</totalICMS>
-  <totalIPI>94.85</totalIPI>
-  <totalComImpostos>2219.49</totalComImpostos>
-
-  <itens>
-    <item>
-      <descricao>Guitarra Stratocaster</descricao>
-      <quantidade>1</quantidade>
-      <unidade>UN</unidade>
-      <precoUnitario>1099.00</precoUnitario>
-      <descontoPercentual>0.0</descontoPercentual>
-      <valorTotal>1099.00</valorTotal>
-      <ncm>9207.90.10</ncm>
-      <cest>28.038.00</cest>
-      <origem>0</origem>
-      <cfop>5102</cfop>
-      <cst>102</cst>
-      <baseCalculoICMS>1099.00</baseCalculoICMS>
-      <aliquotaICMS>12.00</aliquotaICMS>
-      <valorICMS>131.88</valorICMS>
-      <aliquotaIPI>5.00</aliquotaIPI>
-      <valorIPI>54.95</valorIPI>
-      <valorPIS>0.00</valorPIS>
-      <valorCOFINS>0.00</valorCOFINS>
-    </item>
-    <item>
-      <descricao>Pedal de Efeito</descricao>
-      <quantidade>2</quantidade>
-      <unidade>UN</unidade>
-      <precoUnitario>399.00</precoUnitario>
-      <descontoPercentual>0.0</descontoPercentual>
-      <valorTotal>798.00</valorTotal>
-      <ncm>9207.90.90</ncm>
-      <cest>28.038.00</cest>
-      <origem>0</origem>
-      <cfop>5102</cfop>
-      <cst>102</cst>
-      <baseCalculoICMS>798.00</baseCalculoICMS>
-      <aliquotaICMS>12.00</aliquotaICMS>
-      <valorICMS>95.76</valorICMS>
-      <aliquotaIPI>5.00</aliquotaIPI>
-      <valorIPI>39.90</valorIPI>
-      <valorPIS>0.00</valorPIS>
-      <valorCOFINS>0.00</valorCOFINS>
-    </item>
-  </itens>
-</notaFiscal>
+<?xml version="1.0" encoding="utf-8"?>
+<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+  <infNFe versao="4.00">
+    <ide>...</ide>
+    <emit>
+      <CNPJ>...</CNPJ>
+      <xNome>...</xNome>
+      <enderEmit>...</enderEmit>
+      <IE>...</IE>
+      <CRT>1</CRT>       <!-- 1 = Simples Nacional -->
+    </emit>
+    <dest>
+      <CPF>...</CPF>     <!-- ou CNPJ -->
+      <xNome>...</xNome>
+      <enderDest>...</enderDest>
+      <indIEDest>9</indIEDest>
+    </dest>
+    <det nItem="1">
+      <prod>
+        <xProd>Guitarra Stratocaster</xProd>
+        <NCM>92079010</NCM>
+        <CFOP>5102</CFOP>
+        <vProd>1099.00</vProd>
+      </prod>
+      <imposto>
+        <ICMS><ICMSSN102>
+          <orig>0</orig>
+          <CSOSN>102</CSOSN>
+        </ICMSSN102></ICMS>
+        <IPI><IPINT><cEnq>001</cEnq><CST>53</CST></IPINT></IPI>
+        <PIS><PISNT><CST>07</CST></PISNT></PIS>
+        <COFINS><COFINSNT><CST>07</CST></COFINSNT></COFINS>
+      </imposto>
+    </det>
+    <total><ICMSTot>
+      <vICMS>0.00</vICMS>   <!-- Simples: ICMS recolhido via DAS, não destacado -->
+      <vNF>1857.10</vNF>
+    </ICMSTot></total>
+    <transp>...</transp>
+    <pag>...</pag>
+  </infNFe>
+</NFe>
 ```
 
-# Tabelas auxiliares que serão neccessárias no código fonte
+# Tabelas auxiliares que serão necessárias no código fonte
 
 ## cfops (~80 a 100 linhas)
 

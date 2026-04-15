@@ -1,181 +1,218 @@
 ## O Que é Esta Biblioteca?
 
-Esta biblioteca é uma solução para calcular impostos e todos os valores relacionados sobre vendas no Brasil.
+Esta biblioteca calcula tributos e gera o XML da NF-e 4.00 (padrão SEFAZ) para vendas de produtos no Brasil. O foco atual é o regime **Simples Nacional**.
 
 ## O Que **não** é Esta Biblioteca?
 
 Esta biblioteca não faz integrações com serviços externos e nem gera notas fiscais eletrônicas (NF-e) diretamente. Ela se concentra no cálculo de tributos e na estruturação dos dados necessários para a emissão de notas fiscais.
 
-# 💡 Como Uso?
 
-Gerando um pedido com dois itens
+# Como Uso?
 
 ```php
 <?php
 
 require_once 'vendor/autoload.php';
 
-use Imposto\Domain\Pedido\Pedido;
-use Imposto\Domain\Pedido\ItemPedido;
-use Imposto\Domain\ProdutoFiscal\NCM;
-use Imposto\Fiscal\CST\CST;
-use Imposto\Fiscal\CFOP\CFOP;
-use Imposto\Fiscal\RegimeTributario\SimplesNacional;
+use Imposto\Catalogo\TipoPessoa\TipoPessoa;
 use Imposto\Catalogo\UFs\UF;
 use Imposto\Catalogo\Unidade\Unidade;
+use Imposto\Domain\Destinatario\Destinatario;
+use Imposto\Domain\Emitente\Emitente;
+use Imposto\Domain\Endereco\Endereco;
+use Imposto\Domain\Pedido\ItemPedido;
+use Imposto\Domain\Pedido\Pedido;
+use Imposto\Domain\ProdutoFiscal\NCM;
+use Imposto\Fiscal\CFOP\CFOP;
+use Imposto\Fiscal\CST\CSOSN;
+use Imposto\Fiscal\RegimeTributario\SimplesNacional;
 
-# Criando um Pedido
+$emitente = new Emitente(
+    cnpj:                   '12345678900000',
+    razaoSocial:            'Scemist Tecnologia LTDA',
+    nomeFantasia:           'Scemist',
+    inscricaoEstadual:      '000123456789',
+    codigoRegimeTributario: 1,
+    inscricaoMunicipal:     '12345',
+    endereco: new Endereco(
+        logradouro:      'Rua Comendador Gomes',
+        numero:          '505',
+        bairro:          'Vila Chica',
+        municipioCodigo: '3509502',
+        municipioNome:   'Campinas',
+        estado:          UF::SP,
+        cep:             '13069096',
+    ),
+);
+
+$destinatario = new Destinatario(
+    tipoPessoa:  TipoPessoa::PF,
+    documento:   '12345678910',
+    nome:        'João Maria da Silva',
+    indicadorIE: 9,   // 9 = não contribuinte
+    endereco: new Endereco(
+        logradouro:      'Rua Michigan',
+        numero:          '531',
+        bairro:          'Brooklin',
+        municipioCodigo: '3550308',
+        municipioNome:   'Sao Paulo',
+        estado:          UF::SP,
+        cep:             '04566000',
+    ),
+);
 
 $pedido = new Pedido(
+    emitente:         $emitente,
+    destinatario:     $destinatario,
     regimeTributario: new SimplesNacional(),
-    origem: UF::SP,
-    destino: UF::MG,
-    tipoPessoa: TipoPessoa::PF,
-    consumidorFinal: true,
-    contribuinteICMS: false,
-    presencial: false,
+    consumidorFinal:  true,
+    presencial:       false,
 );
 
 $pedido->addItem(new ItemPedido(
-    nome: 'Guitarra Stratocaster',
-    preco: 1099.0,
-    quantidade: 1,
-    unidade: Unidade::UNIDADE,
-    ncm: new NCM('9207.90.10'),
-    cst: new CST('000'),
-    cfop: new CFOP('5102'),
+    nome:               'Guitarra Stratocaster',
+    preco:              1099.0,
+    quantidade:         1,
+    unidade:            Unidade::UNIDADE,
+    ncm:                new NCM('9207.90.10'),  // pontos aceitos; normalizado internamente
+    situacaoTributaria: CSOSN::TributadaSemPermissaoDeCredito,
+    cfop:               new CFOP('5102'),
+    origemMercadoria:   0,
 ));
 
 $pedido->addItem(new ItemPedido(
-    nome: 'Pedal de Efeito',
-    preco: 399.0,
-    quantidade: 2,
-    unidade: Unidade::UNIDADE,
-    ncm: new NCM('9207.90.90'),
-    cst: new CST('000'),
-    cfop: new CFOP('5102')
+    nome:               'Pedal de Efeito Overdrive',
+    preco:              399.0,
+    quantidade:         2,
+    unidade:            Unidade::UNIDADE,
+    ncm:                new NCM('9207.90.90'),
+    situacaoTributaria: CSOSN::NaoTributada,
+    cfop:               new CFOP('5102'),
+    origemMercadoria:   0,
+    desconto:           39.90,
 ));
-
-# Utilizando os Dados Gerados
 
 $notaFiscal = $pedido->getNotaFiscal();
 
-echo
-    'Subtotal: ',           $notaFiscal->getSubtotal(), PHP_EOL,
-    'ICMS: ',               $notaFiscal->getICMS(), PHP_EOL,
-    'IPI: ',                $notaFiscal->getIPI(), PHP_EOL,
-    'Total com Impostos: ', $notaFiscal->getTotalComImpostos(), PHP_EOL,
-    'Nota Fiscal:', PHP_EOL,
-    $notaFiscal->getXml(), PHP_EOL;
-
+echo 'Subtotal: ',           $notaFiscal->getSubtotal(), PHP_EOL;
+echo 'Desconto: ',           $notaFiscal->getDesconto(), PHP_EOL;
+echo 'Valor Liquido: ',      $notaFiscal->getValorLiquido(), PHP_EOL;
+echo 'ICMS: ',               $notaFiscal->getICMS(), PHP_EOL;
+echo 'IPI: ',                $notaFiscal->getIPI(), PHP_EOL;
+echo 'Total com Impostos: ', $notaFiscal->getTotalComImpostos(), PHP_EOL;
+echo $notaFiscal->getXml(), PHP_EOL;
 ```
 
-## 🚀 Resultado
+## Resultado
 
 ```
-Subtotal: 1897,00
-ICMS: 227,64
-IPI: 94,85
-Total com Impostos: 2219,49
-
-<notaFiscal>
-    <regimeTributario>Simples Nacional</regimeTributario>
-    <origem>SP</origem>
-    <destino>MG</destino>
-    <dataEmissao>2025-05-26T01:34:33+00:00</dataEmissao>
-    <subtotal>1897.00</subtotal>
-    <icms>227.64</icms>
-    <item>
-        <descricao>Guitarra Stratocaster</descricao>
-        <quantidade>1</quantidade>
-        <preco>1099.00</preco>
-        <icms>131.88</icms>
-        <ipi>54.95</ipi>
-        <pis>0.00</pis>
-        <cofins>0.00</cofins>
-    </item>
-    <item>
-        <descricao>Pedal de Efeito</descricao>
-        <quantidade>2</quantidade>
-        <preco>399.00</preco>
-        <icms>95.76</icms>
-        <ipi>39.90</ipi>
-        <pis>0.00</pis>
-        <cofins>0.00</cofins>
-    </item>
-</notaFiscal>
+Subtotal: 1897
+Desconto: 39.9
+Valor Liquido: 1857.1
+ICMS: 0
+IPI: 0
+Total com Impostos: 1857.1
 ```
 
-# 📝 Quais os Requisitos para Usar?
+`getXml()` retorna um XML NF-e 4.00 pronto para assinar e transmitir:
 
-Para o correto cálculo de impostos no Brasil, algumas informações são obrigatórias e esta biblioteca não pode inferir automaticamente. Você precisará informar.
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+  <infNFe versao="4.00">
+    <ide>...</ide>
+    <emit>
+      <CNPJ>12345678900000</CNPJ>
+      <xNome>Scemist Tecnologia LTDA</xNome>
+      <CRT>1</CRT>
+    </emit>
+    <dest>
+      <CPF>12345678910</CPF>
+      <xNome>João Maria da Silva</xNome>
+      <indIEDest>9</indIEDest>
+    </dest>
+    <det nItem="1">
+      <prod>
+        <xProd>Guitarra Stratocaster</xProd>
+        <NCM>92079010</NCM>
+        <CFOP>5102</CFOP>
+        <vProd>1099.00</vProd>
+      </prod>
+      <imposto>
+        <ICMS><ICMSSN102><orig>0</orig><CSOSN>102</CSOSN></ICMSSN102></ICMS>
+        <IPI><IPINT><cEnq>001</cEnq><CST>53</CST></IPINT></IPI>
+        <PIS><PISNT><CST>07</CST></PISNT></PIS>
+        <COFINS><COFINSNT><CST>07</CST></COFINSNT></COFINS>
+      </imposto>
+    </det>
+    <det nItem="2">
+      <prod>
+        <xProd>Pedal de Efeito Overdrive</xProd>
+        <NCM>92079090</NCM>
+        <vProd>798.00</vProd>
+        <vDesc>39.90</vDesc>
+      </prod>
+      <imposto>
+        <ICMS><ICMSSN400><orig>0</orig><CSOSN>400</CSOSN></ICMSSN400></ICMS>
+        ...
+      </imposto>
+    </det>
+    <total>
+      <ICMSTot>
+        <vICMS>0.00</vICMS>  <!-- Simples Nacional: ICMS recolhido via DAS -->
+        <vNF>1857.10</vNF>
+      </ICMSTot>
+    </total>
+  </infNFe>
+</NFe>
+```
 
-Dividimos essas informações em três grupos:
+# Quais os Requisitos para Usar?
 
-### 🏢 **Empresa**
+### Emitente
 
-Informações sobre sua própria empresa, como:
+Informações da sua empresa:
 
-* Regime tributário (Simples Nacional, Lucro Presumido etc.)
-* Estado de origem da mercadoria
+* Regime tributário (CRT: 1 = Simples Nacional ME, 2 = Simples Nacional EPP, 3 = Regime Normal)
+* CNPJ, razão social, nome fantasia, inscrição estadual
+* Endereço completo (logradouro, bairro, município IBGE, UF, CEP)
 
-Esses dados são informados ao criar o **Pedido**.
+### Destinatário
 
-### 👤 **Cliente**
+Informações sobre o cliente:
 
-Informações sobre o destinatário da nota fiscal:
+* Tipo de pessoa (Física ou Jurídica) e CPF/CNPJ
+* Indicador IE: `1` = contribuinte, `2` = isento, `9` = não contribuinte ([verificar aqui](https://www.consultaie.com.br/))
+* Endereço completo
 
-* Tipo de pessoa (Física ou Jurídica)
-* Estado de destino
-* Se é consumidor final
-* Se é contribuinte de ICMS ([Consulta se Tem IE no Destino](https://www.consultaie.com.br/))
+### Produto (por item)
 
-Também informadas ao criar o **Pedido**.
+* **NCM** — aceita formato com pontos (`9207.90.10`) ou sem (`92079010`)
+* **CSOSN** (Simples Nacional) ou **CST** (Regime Normal)
+* **CFOP** (ex: `5102` para venda dentro do estado)
+* **Origem da mercadoria**: `0` = nacional, `1` = importado diretamente, `2` = importado de terceiros
+* **Desconto** por item (opcional, em reais)
 
-### 📦 **Produto**
+## Exemplos de Cadastros
 
-Informações fiscais fixas sobre o produto:
+Na pasta `examples/`, há arquivos JSON com estrutura relacional (um arquivo por entidade, ligados por IDs) simulando como ficaria num banco de dados.
 
-* **NCM** (Classificação Fiscal)
-* **CEST** (se aplicável)
-* **Origem da mercadoria**
-* **Aplica IPI?**
-* **Aplica ST (Substituição Tributária)?**
+## Onde Encontro os Dados Fiscais do Produto?
 
-Essas informações devem estar cadastradas no banco de dados e são utilizadas automaticamente ao criar os **itens do Pedido**.
+* **NCM**: [Portal Classif – Receita Federal](https://portalunico.siscomex.gov.br/classif/#/sumario)
+* **CEST**: derivado do NCM; consulte seu contador se necessário
+* **CFOP**: depende da operação (venda dentro do estado, interestadual, etc.)
+* **CSOSN**: definido junto ao contador no cadastro do produto
 
-## 🧾 Exemplos de Cadatros
+# Status da Biblioteca
 
-Na pasta `exemplos/`, você encontrará arquivos JSON simulando a estrutura das tabelas `produtos` e `pedidos` com todos os campos obrigatórios. Eles servem como referência para seu sistema de cadastro.
+> Em desenvolvimento Alpha. Não recomendada para produção.
 
-## 📃 Onde Encontro Estes Dados ao Fazer o Cadastro do Produto?
-
-* **NCM** (Classificação Fiscal): disponível no site da Receita Federal ou em ferramentas como:
-  👉 [Portal Classif – Receita Federal](https://portalunico.siscomex.gov.br/classif/#/sumario)
-
-* **CEST**: normalmente derivado do NCM. Se não souber, busque por "CEST \[nome do produto]" ou consulte seu contador.
-
-* **Origem da mercadoria** (Código de origem):
-
-  * `0`: Nacional
-  * `1`: Importado diretamente
-  * `2`: Importado adquirido de terceiros
-
-* **Aplica IPI?**
-
-  * ✅ Sim: se sua empresa fabrica ou importa o produto
-  * ❌ Não: se apenas revende produtos prontos comprados no Brasil
-
-* **Aplica ST?**
-
-  * ✅ Sim: cada estado tem uma Tabela de Produtos Sujeito a Substituição Tributária (ST). Se o produto estiver nessa tabela, marque como sim.
-  * ❌ Não: se não ou se estiver em dúvida (o sistema pode validar depois)
-
-## ✅ Conclusão
-
-Todos esses campos são **obrigatórios** para que a biblioteca calcule corretamente os tributos e gere a nota fiscal.
-Garanta que eles estejam corretamente preenchidos no cadastro de produtos.
-
-# 📍 Status da Biblioteca
-
-> Em desenvolvimento Alpha. Não é recomendada para produção ainda.
+| Funcionalidade                        | Status |
+| ------------------------------------- | ------ |
+| Simples Nacional — cálculo de valores | ✅     |
+| Simples Nacional — geração XML NF-e   | ✅     |
+| Lucro Presumido / Lucro Real          | ❌     |
+| DIFAL (EC 87/2015)                    | ❌     |
+| Assinatura digital (certificado A1)   | ❌     |
+| Transmissão SEFAZ                     | ❌     |
