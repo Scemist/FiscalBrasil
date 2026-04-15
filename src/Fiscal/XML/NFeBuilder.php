@@ -16,26 +16,33 @@ class NFeBuilder
 {
     public function build(NotaFiscalDeProduto $nota, array $config = []): string
     {
-        $serie      = $config['serie']              ?? 1;
-        $numero     = $config['numero']             ?? 1;
-        $ambiente   = $config['ambiente']           ?? 2;
+        $serie            = $config['serie']            ?? 1;
+        $numero           = $config['numero']           ?? 1;
+        $ambiente         = $config['ambiente']         ?? 2;
         $naturezaOperacao = $config['naturezaOperacao'] ?? 'Venda';
+        $tpEmis           = $config['tpEmis']           ?? 1;
+        $indIntermed      = $config['indIntermed']      ?? 0;
 
-        $emitente    = $nota->getEmitente();
+        $emitente     = $nota->getEmitente();
         $destinatario = $nota->getDestinatario();
-        $regime      = $nota->getRegimeTributario();
-        $origem      = $nota->getOrigem();
-        $destino     = $nota->getDestino();
+        $regime       = $nota->getRegimeTributario();
+        $origem       = $nota->getOrigem();
+        $destino      = $nota->getDestino();
 
-        $idDest = $origem === $destino ? 1 : 2;
+        $idDest   = $origem === $destino ? 1 : 2;
         $indFinal = $nota->isConsumidorFinal() ? 1 : 0;
         $indPres  = $nota->isPresencial() ? 1 : 2;
 
+        $cNF     = $config['cNF'] ?? str_pad((string) random_int(1, 99999999), 8, '0', STR_PAD_LEFT);
+        $chave43 = $this->buildChave43($emitente, $serie, $numero, $tpEmis, $cNF);
+        $cDV     = $this->calcularCDV($chave43);
+        $chave   = $chave43 . $cDV;
+
         $xml  = '<?xml version="1.0" encoding="utf-8"?>' . "\n";
         $xml .= '<NFe xmlns="http://www.portalfiscal.inf.br/nfe">' . "\n";
-        $xml .= '  <infNFe versao="4.00">' . "\n";
+        $xml .= "  <infNFe versao=\"4.00\" Id=\"NFe{$chave}\">\n";
 
-        $xml .= $this->renderIde($emitente, $serie, $numero, $ambiente, $naturezaOperacao, $idDest, $indFinal, $indPres);
+        $xml .= $this->renderIde($emitente, $serie, $numero, $cNF, $cDV, $ambiente, $naturezaOperacao, $idDest, $indFinal, $indPres, $indIntermed, $tpEmis);
         $xml .= $this->renderEmit($emitente);
         $xml .= $this->renderDest($destinatario);
 
@@ -44,8 +51,17 @@ class NFeBuilder
         }
 
         $xml .= $this->renderTotal($nota);
-        $xml .= $this->renderTransp();
-        $xml .= $this->renderPag($nota->getTotalComImpostos());
+        $xml .= $this->renderTransp($config);
+        $xml .= $this->renderPag($nota->getTotalComImpostos(), $config);
+
+        if (isset($config['infIntermed']))
+            $xml .= $this->renderInfoIntermed($config['infIntermed']);
+
+        if (!empty($config['infCpl']))
+            $xml .= $this->renderInfoAdic($config['infCpl']);
+
+        if (isset($config['infRespTec']))
+            $xml .= $this->renderInfoRespTec($config['infRespTec']);
 
         $xml .= '  </infNFe>' . "\n";
         $xml .= '</NFe>';
@@ -53,13 +69,26 @@ class NFeBuilder
         return $xml;
     }
 
-    private function renderIde(Emitente $emitente, int $serie, int $numero, int $ambiente, string $naturezaOperacao, int $idDest, int $indFinal, int $indPres): string
-    {
-        $cuf = $emitente->getEndereco()->getEstado()->getCodigoIBGE();
+    private function renderIde(
+        Emitente $emitente,
+        int $serie,
+        int $numero,
+        string $cNF,
+        int $cDV,
+        int $ambiente,
+        string $naturezaOperacao,
+        int $idDest,
+        int $indFinal,
+        int $indPres,
+        int $indIntermed,
+        int $tpEmis,
+    ): string {
+        $cuf  = $emitente->getEndereco()->getEstado()->getCodigoIBGE();
         $agora = (new \DateTimeImmutable())->format('Y-m-d\TH:i:sP');
 
         return "    <ide>\n"
             . "      <cUF>{$cuf}</cUF>\n"
+            . "      <cNF>{$cNF}</cNF>\n"
             . "      <natOp>" . $this->esc($naturezaOperacao) . "</natOp>\n"
             . "      <mod>55</mod>\n"
             . "      <serie>{$serie}</serie>\n"
@@ -70,11 +99,13 @@ class NFeBuilder
             . "      <idDest>{$idDest}</idDest>\n"
             . "      <cMunFG>" . $emitente->getEndereco()->getMunicipioCodigo() . "</cMunFG>\n"
             . "      <tpImp>1</tpImp>\n"
-            . "      <tpEmis>1</tpEmis>\n"
+            . "      <tpEmis>{$tpEmis}</tpEmis>\n"
+            . "      <cDV>{$cDV}</cDV>\n"
             . "      <tpAmb>{$ambiente}</tpAmb>\n"
             . "      <finNFe>1</finNFe>\n"
             . "      <indFinal>{$indFinal}</indFinal>\n"
             . "      <indPres>{$indPres}</indPres>\n"
+            . "      <indIntermed>{$indIntermed}</indIntermed>\n"
             . "      <procEmi>0</procEmi>\n"
             . "      <verProc>FiscalBrasil 1.0</verProc>\n"
             . "    </ide>\n";
@@ -159,28 +190,50 @@ class NFeBuilder
         $ncm         = $item->getNCM();
         $situacao    = $item->getSituacaoTributaria();
         $baseCalculo = $item->getValorLiquido();
+        $cProd       = $item->getCodigoProduto() !== '' ? $item->getCodigoProduto() : (string) $numero;
+        $cEAN        = $item->getCodigoBarras();
+        $unidade     = $item->getUnidade()->value;
+        $quantidade  = number_format($item->getQuantidade(), 4, '.', '');
+        $vUnCom      = number_format($item->getPreco(), 10, '.', '');
 
         $xml = "    <det nItem=\"{$numero}\">\n"
             . "      <prod>\n"
-            . "        <cProd>" . $this->esc($item->getCFOP()->getCodigo()) . "</cProd>\n"
+            . "        <cProd>" . $this->esc($cProd) . "</cProd>\n"
+            . "        <cEAN>{$cEAN}</cEAN>\n"
             . "        <xProd>" . $this->esc($item->getNome()) . "</xProd>\n"
-            . "        <NCM>" . $ncm->getCodigo() . "</NCM>\n"
-            . "        <CFOP>" . $item->getCFOP()->getCodigo() . "</CFOP>\n"
-            . "        <uCom>" . $item->getUnidade()->value . "</uCom>\n"
-            . "        <qCom>" . number_format($item->getQuantidade(), 4, '.', '') . "</qCom>\n"
-            . "        <vUnCom>" . number_format($item->getPreco(), 10, '.', '') . "</vUnCom>\n"
-            . "        <vProd>" . number_format($item->getSubtotal(), 2, '.', '') . "</vProd>\n";
+            . "        <NCM>" . $ncm->getCodigo() . "</NCM>\n";
+
+        if ($item->getCodigoBeneficio() !== '')
+            $xml .= "        <cBenef>" . $item->getCodigoBeneficio() . "</cBenef>\n";
+
+        $xml .= "        <CFOP>" . $item->getCFOP()->getCodigo() . "</CFOP>\n"
+            . "        <uCom>{$unidade}</uCom>\n"
+            . "        <qCom>{$quantidade}</qCom>\n"
+            . "        <vUnCom>{$vUnCom}</vUnCom>\n"
+            . "        <vProd>" . number_format($item->getSubtotal(), 2, '.', '') . "</vProd>\n"
+            . "        <cEANTrib>{$cEAN}</cEANTrib>\n"
+            . "        <uTrib>{$unidade}</uTrib>\n"
+            . "        <qTrib>{$quantidade}</qTrib>\n"
+            . "        <vUnTrib>{$vUnCom}</vUnTrib>\n";
 
         if ($item->getDesconto() > 0)
             $xml .= "        <vDesc>" . number_format($item->getDesconto(), 2, '.', '') . "</vDesc>\n";
 
-        $xml .= "        <indTot>1</indTot>\n"
-            . "      </prod>\n"
+        $xml .= "        <indTot>1</indTot>\n";
+
+        if ($item->getNumeroPedido() !== '')
+            $xml .= "        <xPed>" . $this->esc($item->getNumeroPedido()) . "</xPed>\n";
+
+        if ($item->getNumeroItemPedido() > 0)
+            $xml .= "        <nItemPed>" . $item->getNumeroItemPedido() . "</nItemPed>\n";
+
+        $xml .= "      </prod>\n"
             . "      <imposto>\n"
             . $this->renderBlocoImposto('ICMS', $regime->getBlocoICMSXml($ncm, $situacao, $item->getOrigemMercadoria(), $origem, $destino, $baseCalculo))
             . $this->renderBlocoImposto('IPI', $regime->getBlocoIPIXml($ncm, $situacao, $baseCalculo))
             . $this->renderBlocoImposto('PIS', $regime->getBlocoPISXml($situacao, $baseCalculo))
             . $this->renderBlocoImposto('COFINS', $regime->getBlocoCOFINSXml($situacao, $baseCalculo))
+            . $this->renderBlocoIBSCBS($item)
             . "      </imposto>\n"
             . "    </det>\n";
 
@@ -190,11 +243,36 @@ class NFeBuilder
     private function renderBlocoImposto(string $grupoXml, array $bloco): string
     {
         $tag = $bloco['tag'];
-        $xml = "        <{$grupoXml}><{$tag}>\n";
-        foreach ($bloco['campos'] as $campo => $valor) {
-            $xml .= "          <{$campo}>{$valor}</{$campo}>\n";
+        $ind = '        ';
+
+        $xml = "{$ind}<{$grupoXml}>\n";
+
+        if (isset($bloco['pre_campos'])) {
+            foreach ($bloco['pre_campos'] as $campo => $valor) {
+                $xml .= "{$ind}  <{$campo}>{$valor}</{$campo}>\n";
+            }
         }
-        $xml .= "        </{$tag}></{$grupoXml}>\n";
+
+        $xml .= "{$ind}  <{$tag}>\n";
+        foreach ($bloco['campos'] as $campo => $valor) {
+            $xml .= "{$ind}    <{$campo}>{$valor}</{$campo}>\n";
+        }
+        $xml .= "{$ind}  </{$tag}>\n";
+        $xml .= "{$ind}</{$grupoXml}>\n";
+
+        return $xml;
+    }
+
+    private function renderBlocoIBSCBS(ItemPedido $item): string
+    {
+        $xml = "        <IBSCBS>\n"
+            . "          <CST>" . $item->getCstIBSCBS() . "</CST>\n";
+
+        if ($item->getClasseTributariaIBSCBS() !== '')
+            $xml .= "          <cClassTrib>" . $item->getClasseTributariaIBSCBS() . "</cClassTrib>\n";
+
+        $xml .= "        </IBSCBS>\n";
+
         return $xml;
     }
 
@@ -205,6 +283,9 @@ class NFeBuilder
             . "        <vBC>0.00</vBC>\n"
             . "        <vICMS>" . number_format($nota->getICMS(), 2, '.', '') . "</vICMS>\n"
             . "        <vICMSDeson>0.00</vICMSDeson>\n"
+            . "        <vFCPUFDest>0.00</vFCPUFDest>\n"
+            . "        <vICMSUFDest>0.00</vICMSUFDest>\n"
+            . "        <vICMSUFRemet>0.00</vICMSUFRemet>\n"
             . "        <vFCP>0.00</vFCP>\n"
             . "        <vBCST>0.00</vBCST>\n"
             . "        <vST>0.00</vST>\n"
@@ -221,25 +302,134 @@ class NFeBuilder
             . "        <vCOFINS>0.00</vCOFINS>\n"
             . "        <vOutro>0.00</vOutro>\n"
             . "        <vNF>" . number_format($nota->getTotalComImpostos(), 2, '.', '') . "</vNF>\n"
+            . "        <vTotTrib>0.00</vTotTrib>\n"
             . "      </ICMSTot>\n"
+            . "      <IBSCBSTot>\n"
+            . "        <vBCIBSCBS>0.00</vBCIBSCBS>\n"
+            . "        <gIBS>\n"
+            . "          <gIBSUF>\n"
+            . "            <vDif>0.00</vDif>\n"
+            . "            <vDevTrib>0.00</vDevTrib>\n"
+            . "            <vIBSUF>0.00</vIBSUF>\n"
+            . "          </gIBSUF>\n"
+            . "          <gIBSMun>\n"
+            . "            <vDif>0.00</vDif>\n"
+            . "            <vDevTrib>0.00</vDevTrib>\n"
+            . "            <vIBSMun>0.00</vIBSMun>\n"
+            . "          </gIBSMun>\n"
+            . "          <vIBS>0.00</vIBS>\n"
+            . "          <vCredPres>0.00</vCredPres>\n"
+            . "          <vCredPresCondSus>0.00</vCredPresCondSus>\n"
+            . "        </gIBS>\n"
+            . "        <gCBS>\n"
+            . "          <vDif>0.00</vDif>\n"
+            . "          <vDevTrib>0.00</vDevTrib>\n"
+            . "          <vCBS>0.00</vCBS>\n"
+            . "          <vCredPres>0.00</vCredPres>\n"
+            . "          <vCredPresCondSus>0.00</vCredPresCondSus>\n"
+            . "        </gCBS>\n"
+            . "      </IBSCBSTot>\n"
             . "    </total>\n";
     }
 
-    private function renderTransp(): string
+    private function renderTransp(array $config = []): string
     {
-        return "    <transp>\n"
-            . "      <modFrete>9</modFrete>\n"
-            . "    </transp>\n";
+        $modFrete = $config['modFrete'] ?? 9;
+
+        $xml = "    <transp>\n"
+            . "      <modFrete>{$modFrete}</modFrete>\n";
+
+        if (isset($config['transporta'])) {
+            $t = $config['transporta'];
+            $xml .= "      <transporta>\n";
+            if (!empty($t['cnpj']))   $xml .= "        <CNPJ>" . $t['cnpj'] . "</CNPJ>\n";
+            if (!empty($t['cpf']))    $xml .= "        <CPF>" . $t['cpf'] . "</CPF>\n";
+            if (!empty($t['xNome']))  $xml .= "        <xNome>" . $this->esc($t['xNome']) . "</xNome>\n";
+            if (!empty($t['ie']))     $xml .= "        <IE>" . $t['ie'] . "</IE>\n";
+            if (!empty($t['xEnder'])) $xml .= "        <xEnder>" . $this->esc($t['xEnder']) . "</xEnder>\n";
+            if (!empty($t['xMun']))   $xml .= "        <xMun>" . $this->esc($t['xMun']) . "</xMun>\n";
+            if (!empty($t['uf']))     $xml .= "        <UF>" . $t['uf'] . "</UF>\n";
+            $xml .= "      </transporta>\n";
+        }
+
+        if (isset($config['vol'])) {
+            $v = $config['vol'];
+            $xml .= "      <vol>\n";
+            if (isset($v['qVol']))  $xml .= "        <qVol>" . $v['qVol'] . "</qVol>\n";
+            if (isset($v['nVol']))  $xml .= "        <nVol>" . $v['nVol'] . "</nVol>\n";
+            if (isset($v['pesoL'])) $xml .= "        <pesoL>" . number_format((float) $v['pesoL'], 3, '.', '') . "</pesoL>\n";
+            if (isset($v['pesoB'])) $xml .= "        <pesoB>" . number_format((float) $v['pesoB'], 3, '.', '') . "</pesoB>\n";
+            $xml .= "      </vol>\n";
+        }
+
+        $xml .= "    </transp>\n";
+
+        return $xml;
     }
 
-    private function renderPag(float $valorTotal): string
+    private function renderPag(float $valorTotal, array $config = []): string
     {
+        $indPag = $config['indPag'] ?? 0;
+        $tPag   = $config['tPag']   ?? '01';
+        $vPag   = $config['vPag']   ?? $valorTotal;
+        $vTroco = $config['vTroco'] ?? 0.0;
+
         return "    <pag>\n"
             . "      <detPag>\n"
-            . "        <tPag>99</tPag>\n"
-            . "        <vPag>" . number_format($valorTotal, 2, '.', '') . "</vPag>\n"
+            . "        <indPag>{$indPag}</indPag>\n"
+            . "        <tPag>{$tPag}</tPag>\n"
+            . "        <vPag>" . number_format((float) $vPag, 2, '.', '') . "</vPag>\n"
             . "      </detPag>\n"
+            . "      <vTroco>" . number_format((float) $vTroco, 2, '.', '') . "</vTroco>\n"
             . "    </pag>\n";
+    }
+
+    private function renderInfoIntermed(array $intermed): string
+    {
+        return "    <infIntermed>\n"
+            . "      <CNPJ>" . $intermed['cnpj'] . "</CNPJ>\n"
+            . "      <idCadIntTran>" . $this->esc($intermed['idCadIntTran']) . "</idCadIntTran>\n"
+            . "    </infIntermed>\n";
+    }
+
+    private function renderInfoAdic(string $infCpl): string
+    {
+        return "    <infAdic>\n"
+            . "      <infCpl>" . $this->esc($infCpl) . "</infCpl>\n"
+            . "    </infAdic>\n";
+    }
+
+    private function renderInfoRespTec(array $resp): string
+    {
+        return "    <infRespTec>\n"
+            . "      <CNPJ>" . $resp['cnpj'] . "</CNPJ>\n"
+            . "      <xContato>" . $this->esc($resp['xContato']) . "</xContato>\n"
+            . "      <email>" . $this->esc($resp['email']) . "</email>\n"
+            . "      <fone>" . $resp['fone'] . "</fone>\n"
+            . "    </infRespTec>\n";
+    }
+
+    private function buildChave43(Emitente $emitente, int $serie, int $numero, int $tpEmis, string $cNF): string
+    {
+        $cuf      = str_pad((string) $emitente->getEndereco()->getEstado()->getCodigoIBGE(), 2, '0', STR_PAD_LEFT);
+        $aamm     = (new \DateTimeImmutable())->format('ym');
+        $cnpj     = $emitente->getCNPJ();
+        $serieStr = str_pad((string) $serie, 3, '0', STR_PAD_LEFT);
+        $nNF      = str_pad((string) $numero, 9, '0', STR_PAD_LEFT);
+
+        return $cuf . $aamm . $cnpj . '55' . $serieStr . $nNF . $tpEmis . $cNF;
+    }
+
+    private function calcularCDV(string $chave43): int
+    {
+        $peso = 2;
+        $soma = 0;
+        for ($i = strlen($chave43) - 1; $i >= 0; $i--) {
+            $soma += (int) $chave43[$i] * $peso;
+            $peso  = $peso === 9 ? 2 : $peso + 1;
+        }
+        $resto = $soma % 11;
+        return $resto < 2 ? 0 : 11 - $resto;
     }
 
     private function esc(string $valor): string

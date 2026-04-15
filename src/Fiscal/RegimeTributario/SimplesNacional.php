@@ -70,8 +70,9 @@ class SimplesNacional implements RegimeTributarioInterface
     public function getBlocoIPIXml(NCM $ncm, SituacaoTributariaInterface $situacao, float $baseCalculo): array
     {
         return [
-            'tag'    => 'IPINT',
-            'campos' => ['cEnq' => '001', 'CST' => '53'],
+            'tag'        => 'IPINT',
+            'pre_campos' => ['cEnq' => '001'],
+            'campos'     => ['CST' => '53'],
         ];
     }
 

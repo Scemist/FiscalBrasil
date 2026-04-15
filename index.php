@@ -23,34 +23,34 @@ $emitente = new Emitente(
     codigoRegimeTributario:   1,
     inscricaoMunicipal:       '12345',
     endereco:                  new Endereco(
-		logradouro:      'Rua Comendador Gomes',
-		numero:          '505',
-		bairro:          'Vila Chica',
-		municipioCodigo: '3509502',
-		municipioNome:   'Campinas',
-		estado:          UF::SP,
-		cep:             '13069096',
-		complemento:     '',
-		telefone:        '18990000000',
-	),
+        logradouro:      'Rua Comendador Gomes',
+        numero:          '505',
+        bairro:          'Vila Chica',
+        municipioCodigo: '3509502',
+        municipioNome:   'Campinas',
+        estado:          UF::SP,
+        cep:             '13069096',
+        complemento:     '',
+        telefone:        '18990000000',
+    ),
 );
 
 $destinatario = new Destinatario(
     tipoPessoa:        TipoPessoa::PF,
-	documento:         '12345678910',
+    documento:         '12345678910',
     nome:              'João Maria da Silva',
     indicadorIE:       9,
     endereco:          new Endereco(
-		logradouro:      'Rua Michigan',
-		numero:          '531',
-		bairro:          'Brooklin',
-		municipioCodigo: '3550308',
-		municipioNome:   'Sao Paulo',
-		estado:          UF::SP,
-		cep:             '04566000',
-		complemento:     '0A',
-		telefone:        '18991111111',
-	),
+        logradouro:      'Rua Michigan',
+        numero:          '531',
+        bairro:          'Brooklin',
+        municipioCodigo: '3550308',
+        municipioNome:   'Sao Paulo',
+        estado:          UF::SP,
+        cep:             '04566000',
+        complemento:     '0A',
+        telefone:        '18991111111',
+    ),
 );
 
 $pedido = new Pedido(
@@ -70,6 +70,8 @@ $pedido->addItem(new ItemPedido(
     situacaoTributaria: CSOSN::TributadaSemPermissaoDeCredito,
     cfop:               new CFOP('5102'),
     origemMercadoria:   0,
+    codigoProduto:      'GTR-001',
+    codigoBarras:       'SEM GTIN',
 ));
 
 $pedido->addItem(new ItemPedido(
@@ -82,6 +84,8 @@ $pedido->addItem(new ItemPedido(
     cfop:               new CFOP('5102'),
     origemMercadoria:   0,
     desconto:           39.90,
+    codigoProduto:      'PDL-002',
+    codigoBarras:       'SEM GTIN',
 ));
 
 $notaFiscal = $pedido->getNotaFiscal();

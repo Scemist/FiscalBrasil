@@ -22,6 +22,13 @@ class ItemPedido
         private CFOP $cfop,
         private int $origemMercadoria = 0,
         private float $desconto = 0.0,
+        private string $codigoProduto = '',
+        private string $codigoBarras = 'SEM GTIN',
+        private string $codigoBeneficio = '',
+        private string $numeroPedido = '',
+        private int $numeroItemPedido = 0,
+        private string $cstIBSCBS = '410',
+        private string $classeTributariaIBSCBS = '',
     ) {}
 
     public function getNome(): string { return $this->nome; }
@@ -33,6 +40,13 @@ class ItemPedido
     public function getCFOP(): CFOP { return $this->cfop; }
     public function getOrigemMercadoria(): int { return $this->origemMercadoria; }
     public function getDesconto(): float { return $this->desconto; }
+    public function getCodigoProduto(): string { return $this->codigoProduto; }
+    public function getCodigoBarras(): string { return $this->codigoBarras; }
+    public function getCodigoBeneficio(): string { return $this->codigoBeneficio; }
+    public function getNumeroPedido(): string { return $this->numeroPedido; }
+    public function getNumeroItemPedido(): int { return $this->numeroItemPedido; }
+    public function getCstIBSCBS(): string { return $this->cstIBSCBS; }
+    public function getClasseTributariaIBSCBS(): string { return $this->classeTributariaIBSCBS; }
 
     public function getSubtotal(): float
     {
